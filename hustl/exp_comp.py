@@ -39,8 +39,10 @@ def extract_sift_feat(files):
         img = color.rgb2gray(img)
         img_h = img.shape[0]
         img_w = img.shape[1]
+        print(img_w)
+        print(img_h)
 
-        img =
+        # img = resize(img, (width, width), anti_aliasing=True)
 
         frames, descriptors = vlfeat.sift.dsift(img, fast=True, step=step_size)
 
