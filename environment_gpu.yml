@@ -18,6 +18,6 @@ dependencies:
   - jupyter=1.0.0
   - notebook=5.7.8
   - cyvlfeat=0.4.6
-  - pip:
+  - pip=18.1:
     - rawpy==0.13.1
     - pyqt5==5.12.1
