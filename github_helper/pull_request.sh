@@ -4,4 +4,4 @@ git checkout master
 git pull
 git checkout $BRANCH
 git merge origin master
-hub pull-request -m "pull request from $BRANCH" -b master -e
+hub pull-request -m "$BRANCH: " -b master -e
