@@ -8,7 +8,7 @@
 
 #### Update
 
-`conda env update -f environment_gpu.yml`
+`conda env update -f environment_ARCH.yml`
 
 #### Activate/Deactivate
 
