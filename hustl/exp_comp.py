@@ -100,8 +100,8 @@ def match_sift_feat(files, names):
     is_vis_match = True #to see the matches or not
 
     # M for matches, F for features
-    M = []
-    F = []
+    M = [[[0] for i in range(num_frames)] for j in range(num_frames)]
+    F = [[[0] for i in range(num_frames)] for j in range(num_frames)]
 
     num_matches = 0;
     for i in range(0, num_frames):
@@ -154,8 +154,8 @@ def match_sift_feat(files, names):
                 num_matches = num_matches + s.shape[0]
                 fi, fj = si_f[mi, :], sj_f[mj, :]
                 di, dj = si_d[mi, :], sj_d[mj, :]
-                M.append([mi, mj, s])
-                F.append([fi, fj])
+                M[i][j] = [mi, mj, s]
+                F[i][j] = [fi, fj]
 
             else:
                 print("dealing with non-unique matches")
@@ -183,8 +183,8 @@ def match_sift_feat(files, names):
                 num_matches = num_matches + s.shape[0]
                 fi, fj = si_f[mi, :], sj_f[mj, :]
                 di, dj = si_d[mi, :], sj_d[mj, :]
-                M.append([mi, mj, s])
-                F.append([fi, fj])
+                M[i][j] = [mi, mj, s]
+                F[i][j] = [fi, fj]
 
             ############ visualize matches #############
             if is_vis_match:
@@ -197,6 +197,7 @@ def match_sift_feat(files, names):
                 matches = matches[np.random.permutation(matches.shape[0])][:50]
                 visualize.show_correspondences(img1, img2, si_f[:, 1], si_f[:, 0], sj_f[:, 1], sj_f[:, 0], matches, mode='arrows')
 
+    M, F = np.array(M), np.array(F)
     to_save = np.array([M, F, num_matches])
     np.save('../npy/sift_match', to_save)
 
