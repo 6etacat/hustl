@@ -19,8 +19,10 @@ def main():
     if not os.path.isfile('../npy/sift_total.npy'):
         extract_sift_feat(files, names)
 
-    match_sift_feat(files, names)
+    if not os.path.isfile('../npy/sift_match.npy'):
+        match_sift_feat(files, names)
 
+    find_clique(files, names, 1)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
@@ -154,8 +156,8 @@ def match_sift_feat(files, names):
                 num_matches = num_matches + s.shape[0]
                 fi, fj = si_f[mi, :], sj_f[mj, :]
                 di, dj = si_d[mi, :], sj_d[mj, :]
-                M[i][j] = [mi, mj, s]
-                F[i][j] = [fi, fj]
+                M[i][j] = np.array([mi, mj, s])
+                F[i][j] = np.array([fi, fj])
 
             else:
                 print("dealing with non-unique matches")
@@ -183,8 +185,8 @@ def match_sift_feat(files, names):
                 num_matches = num_matches + s.shape[0]
                 fi, fj = si_f[mi, :], sj_f[mj, :]
                 di, dj = si_d[mi, :], sj_d[mj, :]
-                M[i][j] = [mi, mj, s]
-                F[i][j] = [fi, fj]
+                M[i][j] = np.array([mi, mj, s])
+                F[i][j] = np.array([fi, fj])
 
             ############ visualize matches #############
             if is_vis_match:
@@ -213,6 +215,40 @@ def extract_dist_score(matches):
     for match in matches:
         scores.append(match.distance)
     return np.array(scores)
+
+def find_clique(files, names, nclique):
+    sift_total = np.load('../npy/sift_total.npy')
+    sift_match = np.load('../npy/sift_match.npy')
+    num_matches = sift_match[2]
+    M = sift_match[0]
+    F = sift_match[1]
+
+    num_features = sift_total[0]
+    num_features_cum = sift_total[1]
+    num_features_tot = sift_total[2]
+
+    num_frames = len(files)
+
+    ## similarity matrtix S
+    Si, Sj, Ss = np.zeros(num_matches), np.zeros(num_matches), np.zeros(num_matches)
+    idx = 0
+
+    for i in range(0, num_frames):
+        for j in range(i+1, num_frames):
+             nn_matches = M[i, j].shape[1]
+             ms = M[i, j]
+             if ms.shape[1] == 0:
+                 continue
+
+             mi = ms[0] + num_features_cum[i]
+             mj = ms[1] + num_features_cum[j]
+             s = ms[2]
+
+             Si[idx:idx + nn_matches] = mi
+             Sj[idx:idx + nn_matches] = mi
+             Ss[idx:idx + nn_matches] = mi
+             idx = idx + nn_matches
+
 
 # def convert_to_KeyPoints(f):
 #     keypoints = []
