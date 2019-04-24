@@ -7,6 +7,7 @@ from skimage import io, color
 from skimage.transform import resize, rescale
 from scipy import ndimage
 import os
+import sys
 import scipy
 import visualize
 
@@ -22,7 +23,7 @@ def main():
     if not os.path.isfile('../npy/sift_match.npy'):
         match_sift_feat(files, names)
 
-    find_clique(files, names, 1)
+    find_clique(files, names, 2)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
@@ -190,8 +191,9 @@ def match_sift_feat(files, names):
 
             ############ visualize matches #############
             if is_vis_match:
-                img1 = color.rgb2gray(io.imread(files[i])[0])
-                img2 = color.rgb2gray(io.imread(files[j])[0])
+                print("visualizing matches")
+                img1 = color.rgb2gray(io.imread(files[i]))
+                img2 = color.rgb2gray(io.imread(files[j]))
                 img1 = rescale(img1, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
                 img2 = rescale(img2, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
                 matches[:, 0] = mi
@@ -216,7 +218,7 @@ def extract_dist_score(matches):
         scores.append(match.distance)
     return np.array(scores)
 
-def find_clique(files, names, nclique):
+def find_clique(files, names, num_clique):
     sift_total = np.load('../npy/sift_total.npy')
     sift_match = np.load('../npy/sift_match.npy')
     num_matches = sift_match[2]
@@ -245,10 +247,21 @@ def find_clique(files, names, nclique):
              s = ms[2]
 
              Si[idx:idx + nn_matches] = mi
-             Sj[idx:idx + nn_matches] = mi
-             Ss[idx:idx + nn_matches] = mi
+             Sj[idx:idx + nn_matches] = mj
+             Ss[idx:idx + nn_matches] = s
              idx = idx + nn_matches
 
+    mat = [np.vstack([Si, Sj]), np.vstack([Sj,Si])]
+    mat = np.array(mat).T
+    with open('../features/match.grh','wb') as f:
+        for line in mat:
+            np.savetxt(f, line, fmt='%d')
+
+    min_clique_num = min(num_frames, num_clique)
+
+
+def fprintf(stream, format_spec, *args):
+    stream.write(format_spec % args)
 
 # def convert_to_KeyPoints(f):
 #     keypoints = []
