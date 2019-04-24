@@ -257,9 +257,13 @@ def find_clique(files, names, num_clique):
         for line in mat:
             np.savetxt(f, line, fmt='%d')
 
+    # running c program to find maximal clique
     min_clique_num = min(num_frames, num_clique)
-    bat_path = '../runmaximalclique.bat'
-    subprocess.call([bat_path, str(min_clique_num)])
+    bat_path = r'C:\Users\majia\Desktop\CS1430\HUSTL\bin\mace.exe'
+    arg1, arg2 = 'MqVe', '-l'
+    input = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match.grh'
+    output = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match_maximal_clique.grh'
+    subprocess.call([bat_path, arg1, arg2, str(min_clique_num), input, output])
 
 # def convert_to_KeyPoints(f):
 #     keypoints = []
