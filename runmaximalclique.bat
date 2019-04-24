@@ -1,9 +1,5 @@
 @echo off
 
-set DATASET_FOLDER=%1%
-set MAX_CLIQUE=%2$
- 
-bin\mace.exe MqVe -l %MAX_CLIQUE% %DATASET_FOLDER%\features\match.grh %DATASET_FOLDER%\features\match_maximal_clique.grh
+set MAX_CLIQUE=%1$
 
-
-
+bin\mace.exe MqVe -l %MAX_CLIQUE% features\match.grh features\match_maximal_clique.grh

@@ -7,7 +7,7 @@ from skimage import io, color
 from skimage.transform import resize, rescale
 from scipy import ndimage
 import os
-import sys
+import subprocess
 import scipy
 import visualize
 
@@ -258,10 +258,8 @@ def find_clique(files, names, num_clique):
             np.savetxt(f, line, fmt='%d')
 
     min_clique_num = min(num_frames, num_clique)
-
-
-def fprintf(stream, format_spec, *args):
-    stream.write(format_spec % args)
+    bat_path = '../runmaximalclique.bat'
+    subprocess.call([bat_path, str(min_clique_num)])
 
 # def convert_to_KeyPoints(f):
 #     keypoints = []
