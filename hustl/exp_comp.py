@@ -11,6 +11,7 @@ import subprocess
 import scipy
 import visualize
 import re
+import exp_comp_2
 
 def main():
     path = '../../CVFinalProj_Data/'
@@ -26,6 +27,8 @@ def main():
 
     if not os.path.isfile('../npy/selected_featsort.npy'):
         find_clique(files, names, 2)
+
+    exp_comp_2.extract_patches_batch(files, names)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
@@ -48,7 +51,7 @@ def extract_sift_feat(files, names):
     num_features = np.zeros((num_frames))
 
     for i in range(0, num_frames):
-        img = io.imread(files[i])[0] #it reads the image 3 times for some reason
+        img = io.imread(files[i]) #it reads the image 3 times for some reason
         img = color.rgb2gray(img)
 
         #downscale image
