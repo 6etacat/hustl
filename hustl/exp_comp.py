@@ -10,6 +10,7 @@ import os
 import subprocess
 import scipy
 import visualize
+import re
 
 def main():
     path = '../../CVFinalProj_Data/'
@@ -23,7 +24,8 @@ def main():
     if not os.path.isfile('../npy/sift_match.npy'):
         match_sift_feat(files, names)
 
-    find_clique(files, names, 2)
+    if not os.path.isfile('../npy/selected_featsort.npy'):
+        find_clique(files, names, 2)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
@@ -232,7 +234,7 @@ def find_clique(files, names, num_clique):
     num_frames = len(files)
 
     ## similarity matrtix S
-    Si, Sj, Ss = np.zeros(num_matches), np.zeros(num_matches), np.zeros(num_matches)
+    Si, Sj, Ss = np.zeros((1, num_matches)), np.zeros((1, num_matches)), np.ones((1, num_matches))
     idx = 0
 
     for i in range(0, num_frames):
@@ -251,19 +253,68 @@ def find_clique(files, names, num_clique):
              Ss[idx:idx + nn_matches] = s
              idx = idx + nn_matches
 
+    Si, Sj, Ss = Si.T, Sj.T, Ss.T
+
     mat = [np.vstack([Si, Sj]), np.vstack([Sj,Si])]
     mat = np.array(mat).T
     with open('../features/match.grh','wb') as f:
         for line in mat:
-            np.savetxt(f, line, fmt='%d')
+            np.savetxt(f, line, fmt='%d', delimiter=',')
 
-    # running c program to find maximal clique
+    ########## running c program to find maximal clique
     min_clique_num = min(num_frames, num_clique)
     bat_path = r'C:\Users\majia\Desktop\CS1430\HUSTL\bin\mace.exe'
     arg1, arg2 = 'MqVe', '-l'
     input = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match.grh'
     output = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match_maximal_clique.grh'
     subprocess.call([bat_path, arg1, arg2, str(min_clique_num), input, output])
+
+    ####### read in the output
+    _output = "../features/match_maximal_clique.grh"
+    text = []
+    with open(_output, 'r') as f:
+        for line in f:
+            text.append(np.fromstring(line, dtype=float, sep=" "))
+
+    text = np.array(text)
+    nmatch = text.shape[0]
+    sizes = np.zeros(nmatch)
+    for i in range(0, nmatch):
+        sizes[i] = text[i].shape[0]
+
+    sorted_idx = np.argsort(-sizes, kind='mergesort') #descending order
+    sizes = sizes[sorted_idx]
+
+    nneighvec = sizes
+    featsort = np.copy(text)
+    for i in range(0, nmatch):
+        id = sorted_idx[i]
+        featsort[i] = text[id]
+
+    np.save('../npy/selected_featsort', featsort)
+    np.save('../npy/selected_nneighvec', nneighvec)
+
+
+    #try to use regex, do not work
+    # text = re.findall('[^\n]*', text)
+    #
+    # nmatch = len(text)
+    # sizes = np.zeros((1, nmatch))
+    # temp_arr = np.zeros((1, nmatch))
+    #
+    # for i in range(0, nmatch):
+    #     temp = text[i]
+    #     print(temp)
+    #     temp2 = re.findall('[\S]*', temp)
+    #     print(temp2[0])
+    #     # exit()
+    #     nelement = len(temp2)
+    #     arr = np.zeros((1, nelement))
+    #     for j in range(0, nelement):
+    #         arr[j] = float(temp2[j])
+    #         print("???")
+    #         print(arr[j])
+
 
 # def convert_to_KeyPoints(f):
 #     keypoints = []
