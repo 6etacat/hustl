@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import cyvlfeat as vlfeat
 import matplotlib.pyplot as plt
-from skimage import io, color, img_as_float
+from skimage import io, color, img_as_float, img_as_ubyte
 from skimage.transform import resize, rescale
 from scipy import ndimage
 import os
@@ -20,65 +20,75 @@ def extract_patches_batch(files, names):
     num_features_cum = sift_total[1]
     num_features_tot = sift_total[2]
 
-    nselected = featsort.shape[0]
-    nimg = num_features.shape[0]
+    num_selected = featsort.shape[0]
+    num_img = num_features.shape[0]
+
     is_display_patch = True
 
     num_frames = len(files)
-    nfeatinfoall = np.sum(nneighvec).astype(int)
-    featinfoall = np.zeros((nfeatinfoall, 3))
+    num_featinfo_all = np.sum(nneighvec).astype(int)
+    featinfo_all = np.zeros((num_featinfo_all, 3))
 
     count = 0
-    for i in range(0, nselected):
-
+    for i in range(0, num_selected):
         featidtot = featsort[i]
         nfeat = featidtot.size
         imgid = np.zeros(nfeat)
         featid = np.zeros(nfeat)
         for j in range(0, nfeat):
-            for k in range(0, nimg):
+            for k in range(0, num_img):
                 if featidtot[j] <= num_features_cum[k+1]:
                     break
-
             imgid[j] = k
             featid[j] = featidtot[j]-num_features_cum[k]
-
-            featinfoall[count, :] = [imgid[j], featid[j], i]
+            featinfo_all[count, :] = [imgid[j], featid[j], i]
             count = count + 1
 
-    featinfoind = np.argsort(featinfoall[:, 0])
-    val = featinfoall[featinfoind]
-    featinfoallsort = featinfoall[featinfoind, :].astype(int)
+    featinfoind = np.argsort(featinfo_all[:, 0])
+    val = featinfo_all[featinfoind]
+    featinfo_allsort = featinfo_all[featinfoind, :].astype(int)
 
-    # may need to initialize differently
-    patches_all = np.zeros((num_frames, 1))
+    patches_all = []
     for k in range(0, num_frames):
-        print("extracting patches " + str(k))
+        print("extracting patches batch" + str(k))
         img = io.imread(files[k])
         img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
-        k_ind = np.where(featinfoallsort[:,0] == k)
-        t_ind = featinfoallsort[k_ind, 1].astype(int)
-        si_f = np.load('../npy/'+names[k]+"_f.npy")
-        # si_d = np.load('../npy/'+names[k]+"_d.npy")
-        Sf = si_f[t_ind, :] # s_f should always flip
-        x, y, s, t = Sf[:, 0], Sf[:, 1], Sf[:, 2] * 5, Sf[:, 3]
-        x, y, s, t = x.flatten(), y.flatten(), s.flatten(), t.flatten()
-        # patches_all[k] = extract_patches(img, x, y, s, t)
-        # for testing purposes:
-        extract_patches(img, x, y, s, t)
+        k_ind = np.where(featinfo_allsort[:,0] == k)
+        t_ind = featinfo_allsort[k_ind, 1].astype(int)
+        
+        print(t_ind)
 
+        si_f = np.load('../npy/'+names[k]+"_f.npy")
+        Sf = si_f[t_ind, :] # s_f should always flip
+        x, y, s, t = Sf[:, 0], Sf[:, 1], Sf[:, 2], Sf[:, 3]
+        x, y, s, t = x.flatten(), y.flatten(), s.flatten(), t.flatten()
+        patches_all.append(extract_patches(img, x, y, s, t))
+
+    patches_all = np.array(patches_all)
 
     ###### organize patches
     # may need to initialize differently
-    # patches_collected = np.zeros((nselected, num_frames))
-    # count_col = np.ones((1, nselected))
-    # count_img = np.ones((1, num_frames))
-    # for i in range(0, nfeatinfoall):
-    #     img_id = featinfoall[i, 0]
-    #     col_id = featinfoall[i, 2]
-    #     patches_collected[col_id, count_col[col_id]] =  patches_all[img_id][count_img[img_id]]
-    #     count_col[col_id] = count_col[col_id] + 1
-    #     count_img[img_id] = count_img[img_id] + 1
+    print("reorganizing patches collected")
+    patches_collected = [[[0] for j in range(num_frames)] for i in range(num_selected)]
+    count_col = np.zeros(num_selected).astype(int)
+    count_img = np.zeros(num_frames).astype(int)
+    for i in range(0, num_featinfo_all):
+        img_id = int(featinfo_all[i, 0])
+        col_id = int(featinfo_all[i, 2])
+
+        print("col_id: " + str(col_id))
+        print("img_id: " + str(img_id))
+        print("count_col[col_id]: " + str(count_col[col_id]))
+        print("count_img[img_id]: " + str(count_img[img_id]))
+
+        patches_collected[col_id][count_col[col_id]] = patches_all[img_id][count_img[img_id]]
+        count_col[col_id] = count_col[col_id] + 1
+        count_img[img_id] = count_img[img_id] + 1
+
+    patches_collected = np.array(patches_collected)
+    print(patches_collected)
+    print(patches_collected.shape)
+    exit()
 
 
 def extract_patches(img, x, y, s, t):
@@ -99,18 +109,17 @@ def extract_patches(img, x, y, s, t):
     for i in range(0, 3):
         imgch.append(img[:, :, i])
     imgch = np.array(imgch)
-    # patches = # ???????format
 
+    patches = []
     for i in range(0, num_feat):
+        print("extracting patches for num feat" + str(i))
+
         xx, yy, ss, tt = x[i], y[i], s[i], t[i]
         patch_size = int(ss * 2 + 1)
-        # print("patch_size: {patch_size}")
         side = np.arange(-ss, ss+1)
-        # print("side shape: {side.shape}")
         xg, yg = np.meshgrid(side, side)
         R = np.array([[np.cos(tt), -np.sin(tt)], [np.sin(tt), np.cos(tt)]])
         xyg_rot = np.matmul(R, np.vstack([xg.reshape(-1).T, yg.reshape(-1).T]))
-        # print("xyg_rot shape: %d", xyg_rot.shape)
         xyg_rot[0, :] = xyg_rot[0, :] + xx
         xyg_rot[1, :] = xyg_rot[1, :] + yy
 
@@ -123,7 +132,6 @@ def extract_patches(img, x, y, s, t):
         patch = np.zeros((patch_size, patch_size, 3))
 
         v_id = np.where(np.logical_and(np.logical_and(xf>=1, xf<=width-1), np.logical_and(yf>=1, yf<=height-1)))
-        print(v_id)
         xf, yf, xp, yp = xf[v_id], yf[v_id], xp[v_id], yp[v_id]
 
         ind1 = np.ravel_multi_index(((yf-1).astype(int), (xf-1).astype(int)), dims=(height, width))
@@ -141,5 +149,9 @@ def extract_patches(img, x, y, s, t):
             temp.ravel()[v_id[0]] = i_arr
             patch[:, :, ch] = temp;
 
-        # patches[iter} = uint8(patch*255);
-        exit()
+        # plt.imshow(patch)
+        # plt.show()
+        patches.append(img_as_ubyte(patch));
+
+    patches = np.array(patches)
+    return patches
