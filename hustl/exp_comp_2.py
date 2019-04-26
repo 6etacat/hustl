@@ -57,14 +57,16 @@ def extract_patches_batch(files, names):
         t_ind = featinfo_allsort[k_ind, 1].flatten().astype(int)
         si_f = np.load('../npy/'+names[k]+"_f.npy")
         Sf = si_f[t_ind, :] # s_f should always flip
+        # visualize selected points
+        # visualize_sift_points(img, Sf[:10, :])
+
         x, y, s, t = Sf[:, 0], Sf[:, 1], Sf[:, 2], Sf[:, 3]
         x, y, s, t = x.flatten(), y.flatten(), s.flatten(), t.flatten()
         patches_all.append(extract_patches(img, x, y, s, t))
 
     patches_all = np.array(patches_all)
 
-    ###### organize patches
-    # may need to initialize differently
+    ###### organize patches ##########
     print("reorganizing patches collected")
     patches_collected = [[[0] for j in range(num_frames)] for i in range(num_selected)]
     count_col = np.zeros(num_selected).astype(int)
@@ -73,19 +75,36 @@ def extract_patches_batch(files, names):
         img_id = int(featinfo_all[i, 0])
         col_id = int(featinfo_all[i, 2])
 
-        # print("col_id: " + str(col_id))
-        # print("img_id: " + str(img_id))
-        # print("count_col[col_id]: " + str(count_col[col_id]))
-        # print("count_img[img_id]: " + str(count_img[img_id]))
-
         patches_collected[col_id][count_col[col_id]] = patches_all[img_id][count_img[img_id]]
         count_col[col_id] = count_col[col_id] + 1
         count_img[img_id] = count_img[img_id] + 1
 
     patches_collected = np.array(patches_collected)
-    print(patches_collected)
-    print(patches_collected.shape)
-    exit()
+
+    if is_display_patch:
+        d_patch_size = 30
+        for i in range(0, num_frames):
+            vis_patches = patches_all[i, 0:10]
+            print(vis_patches.shape)
+            for j in range(0, vis_patches.shape[0]):
+                vis_patches[j] = resize(vis_patches[j], (d_patch_size, d_patch_size))
+
+            rst_img = np.column_stack(vis_patches)
+            plt.imshow(rst_img)
+            plt.show()
+
+        # for i in range(0, num_selected):
+        #     d_patch_size = 30
+        #     num_patches = nneighvec[i].astype(int)
+        #     rst_img = np.zeros((d_patch_size, d_patch_size * num_patches, 3))
+        #     rst_img = img_as_ubyte(rst_img)
+        #     temp_patches = []
+        #     for j in range(0, num_patches):
+        #         patch = resize(patches_collected[i,j], (d_patch_size, d_patch_size))
+        #         temp_patches.append(patch)
+        #     rst_img = np.column_stack(temp_patches)
+        #     # plt.imshow(rst_img)
+        #     # plt.show()
 
 
 def extract_patches(img, x, y, s, t):
@@ -146,9 +165,18 @@ def extract_patches(img, x, y, s, t):
             temp.ravel()[v_id[0]] = i_arr
             patch[:, :, ch] = temp;
 
-        plt.imshow(patch)
-        plt.show()
+        # visualize patch
+        # plt.imshow(patch)
+        # plt.show()
         patches.append(img_as_ubyte(patch));
 
     patches = np.array(patches)
     return patches
+
+def visualize_sift_points(img, f):
+    # plot feature points onto the image
+    fig, ax = plt.subplots()
+    ax.imshow(img, interpolation='nearest', cmap=plt.cm.gray)
+    ax.plot(f[:, 1], f[:, 0], '+r', markersize=15)
+    ax.axis((0, img.shape[1], img.shape[0], 0))
+    plt.show()
