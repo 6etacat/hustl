@@ -54,10 +54,7 @@ def extract_patches_batch(files, names):
         img = io.imread(files[k])
         img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
         k_ind = np.where(featinfo_allsort[:,0] == k)
-        t_ind = featinfo_allsort[k_ind, 1].astype(int)
-        
-        print(t_ind)
-
+        t_ind = featinfo_allsort[k_ind, 1].flatten().astype(int)
         si_f = np.load('../npy/'+names[k]+"_f.npy")
         Sf = si_f[t_ind, :] # s_f should always flip
         x, y, s, t = Sf[:, 0], Sf[:, 1], Sf[:, 2], Sf[:, 3]
@@ -76,10 +73,10 @@ def extract_patches_batch(files, names):
         img_id = int(featinfo_all[i, 0])
         col_id = int(featinfo_all[i, 2])
 
-        print("col_id: " + str(col_id))
-        print("img_id: " + str(img_id))
-        print("count_col[col_id]: " + str(count_col[col_id]))
-        print("count_img[img_id]: " + str(count_img[img_id]))
+        # print("col_id: " + str(col_id))
+        # print("img_id: " + str(img_id))
+        # print("count_col[col_id]: " + str(count_col[col_id]))
+        # print("count_img[img_id]: " + str(count_img[img_id]))
 
         patches_collected[col_id][count_col[col_id]] = patches_all[img_id][count_img[img_id]]
         count_col[col_id] = count_col[col_id] + 1
@@ -149,8 +146,8 @@ def extract_patches(img, x, y, s, t):
             temp.ravel()[v_id[0]] = i_arr
             patch[:, :, ch] = temp;
 
-        # plt.imshow(patch)
-        # plt.show()
+        plt.imshow(patch)
+        plt.show()
         patches.append(img_as_ubyte(patch));
 
     patches = np.array(patches)
