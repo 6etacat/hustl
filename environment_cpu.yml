@@ -17,6 +17,7 @@ dependencies:
   - jupyter=1.0.0
   - notebook=5.7.8
   - cyvlfeat=0.4.6
+  - opencv=4.0.0
   - hub=2.11.2
   - pip>=18.1
   - pip:
