@@ -1,2 +1,3 @@
 *.pyc
 /hustl/__pycache__
+*.ipynb

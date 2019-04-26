@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import cyvlfeat as vlfeat
 import matplotlib.pyplot as plt
-from skimage import io, color
+from skimage import io, color, img_as_float
 from skimage.transform import resize, rescale
 from scipy import ndimage
 import os
@@ -50,14 +50,96 @@ def extract_patches_batch(files, names):
     val = featinfoall[featinfoind]
     featinfoallsort = featinfoall[featinfoind, :].astype(int)
 
-    patchesall = np.zeros((num_frames, 1))
+    # may need to initialize differently
+    patches_all = np.zeros((num_frames, 1))
     for k in range(0, num_frames):
         print("extracting patches " + str(k))
         img = io.imread(files[k])
-        img = rescale(img, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
+        img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
         k_ind = np.where(featinfoallsort[:,0] == k)
         t_ind = featinfoallsort[k_ind, 1].astype(int)
         si_f = np.load('../npy/'+names[k]+"_f.npy")
         # si_d = np.load('../npy/'+names[k]+"_d.npy")
         Sf = si_f[t_ind, :] # s_f should always flip
         x, y, s, t = Sf[:, 0], Sf[:, 1], Sf[:, 2] * 5, Sf[:, 3]
+        x, y, s, t = x.flatten(), y.flatten(), s.flatten(), t.flatten()
+        # patches_all[k] = extract_patches(img, x, y, s, t)
+        # for testing purposes:
+        extract_patches(img, x, y, s, t)
+
+
+    ###### organize patches
+    # may need to initialize differently
+    # patches_collected = np.zeros((nselected, num_frames))
+    # count_col = np.ones((1, nselected))
+    # count_img = np.ones((1, num_frames))
+    # for i in range(0, nfeatinfoall):
+    #     img_id = featinfoall[i, 0]
+    #     col_id = featinfoall[i, 2]
+    #     patches_collected[col_id, count_col[col_id]] =  patches_all[img_id][count_img[img_id]]
+    #     count_col[col_id] = count_col[col_id] + 1
+    #     count_img[img_id] = count_img[img_id] + 1
+
+
+def extract_patches(img, x, y, s, t):
+    img = img_as_float(img)
+    height = img.shape[0]
+    width = img.shape[1]
+
+    num_feat = x.size
+    x = np.rint(x)
+    y = np.rint(y)
+    x[x < 1] = 1
+    x[x > width] = width
+    y[y < 1] = 1
+    y[y > height] = height
+
+    s = np.rint(s)
+    imgch = []
+    for i in range(0, 3):
+        imgch.append(img[:, :, i])
+    imgch = np.array(imgch)
+    # patches = # ???????format
+
+    for i in range(0, num_feat):
+        xx, yy, ss, tt = x[i], y[i], s[i], t[i]
+        patch_size = int(ss * 2 + 1)
+        # print("patch_size: {patch_size}")
+        side = np.arange(-ss, ss+1)
+        # print("side shape: {side.shape}")
+        xg, yg = np.meshgrid(side, side)
+        R = np.array([[np.cos(tt), -np.sin(tt)], [np.sin(tt), np.cos(tt)]])
+        xyg_rot = np.matmul(R, np.vstack([xg.reshape(-1).T, yg.reshape(-1).T]))
+        # print("xyg_rot shape: %d", xyg_rot.shape)
+        xyg_rot[0, :] = xyg_rot[0, :] + xx
+        xyg_rot[1, :] = xyg_rot[1, :] + yy
+
+        xr = xyg_rot[0, :].reshape(1, -1).T # col vector now
+        yr = xyg_rot[1, :].reshape(1, -1).T # col vector now
+        xf, yf = np.floor(xr), np.floor(yr)
+        xp = xr - xf
+        yp = yr - yf
+
+        patch = np.zeros((patch_size, patch_size, 3))
+
+        v_id = np.where(np.logical_and(np.logical_and(xf>=1, xf<=width-1), np.logical_and(yf>=1, yf<=height-1)))
+        print(v_id)
+        xf, yf, xp, yp = xf[v_id], yf[v_id], xp[v_id], yp[v_id]
+
+        ind1 = np.ravel_multi_index(((yf-1).astype(int), (xf-1).astype(int)), dims=(height, width))
+        ind2 = np.ravel_multi_index(((yf-1).astype(int), (xf).astype(int)), dims=(height, width))
+        ind3 = np.ravel_multi_index(((yf).astype(int), (xf-1).astype(int)), dims=(height, width))
+        ind4 = np.ravel_multi_index(((yf).astype(int), (xf).astype(int)), dims=(height, width))
+
+        for ch in range(0,3):
+            one_one = np.multiply(xp, imgch[ch].ravel()[ind2])
+            one_two = np.multiply((1-xp), imgch[ch].ravel()[ind1])
+            two_one = np.multiply(xp, imgch[ch].ravel()[ind4])
+            two_two = np.multiply((1-xp), imgch[ch].ravel()[ind3])
+            i_arr = np.multiply((1-yp), (one_one + one_two)) + np.multiply((yp), (two_one + two_two))
+            temp = np.zeros((patch_size, patch_size))
+            temp.ravel()[v_id[0]] = i_arr
+            patch[:, :, ch] = temp;
+
+        # patches[iter} = uint8(patch*255);
+        exit()
