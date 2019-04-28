@@ -265,7 +265,6 @@ def extract_color(files, names, is_augmentation, aug_ratio, patch_size):
     np.save('../npy/observation', O)
     print('observation matrix saved')
 
-
 def fspecial_gauss(s, k):
 
     """Function to mimic the 'fspecial' gaussian MATLAB function

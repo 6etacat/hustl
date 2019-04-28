@@ -13,4 +13,14 @@ import re
 
 def estimation(files, names, scale):
     print("starting estimation")
-    pass
+
+    O = np.load('../npy/patches.npy')
+    O, W, _, _ = initialization(O)
+
+def initialization(O):
+    print("initializing")
+
+    #used to initialize albedo, gamma, constants, and indicator mat
+    print(O.shape)
+    num_img = O[0].shape[1]
+    num_pts = O[0].shape[0]
