@@ -34,7 +34,7 @@ def estimation(files, names, scale):
         A = np.array([a_init, np.ones(num_pts)])
         GC = np.array([g_init, np.multiply(c_init, g_init)])
 
-        #####l1_rpca_mask_alm_fast()
+        l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
 
         # GC_est = GC_est.T
         # O_low[ch] = O_l
@@ -105,3 +105,36 @@ def init_albedo(pg, pc, O, W):
     albedo = b
     print("completed initializaing albedo")
     return albedo
+
+def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, B, maxIterIN, rho, scale):
+    """ This code is based on the MATLAB implementation by Ricardo Carbal
+        of the paper Unifying Nuclear Norm and Bilinear Factorization Approaches
+        for Low-rank Matrix Decomposition
+    """
+    print("starting l1_rpca_mask_alm_fast()")
+
+    ## can add GPU option. not coded yet
+
+    m, n = M.shape[0], M.shape[1]
+    maxIterOut = 5000
+    max_mu = 1e20
+    mu = 1e-3
+    M_norm = np.linalg.norm(M, 'fro')
+    tol = 1e-9 * M_norm
+
+    cW = np.ones(W.size) - W.ravel()
+    is_display_progress = True
+
+    #### initializing optimization var as zeros
+    E = np.random.normal(size=(m,n))
+    Y = np.zeros((m,n)) #lagrange multiplier
+    Y = M
+    _,norm_two,_ = np.linalg.svd(Y)
+    norm_two = norm_two[0]
+
+    mu = 1.25 / norm_two
+    norm_inf = np.linalg.norm(Y.ravel(), np.inf) / lbd1
+    dual_norm = max(norm_two, norm_inf)
+    Y = Y / dual_norm
+
+    exit()
