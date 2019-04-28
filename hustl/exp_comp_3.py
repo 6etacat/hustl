@@ -26,7 +26,21 @@ def estimation(files, names, scale):
     albedo, const, gamma = [], [], []
     O_low = []
 
-    
+    for ch in range(0,3):
+        a_init = init_albedo(np.ones(num_img), np.zeros(num_img), O[ch], W)
+        g_init = np.ones(num_img)
+        c_init = np.zeros(num_img)
+
+        A = np.array([a_init, np.ones(num_pts)])
+        GC = np.array([g_init, np.multiply(c_init, g_init)])
+
+        #####l1_rpca_mask_alm_fast()
+
+        # GC_est = GC_est.T
+        # O_low[ch] = O_l
+        # albedo[ch] = np.exp(A_est[:, 1])
+        # gamma[ch] = GC_test[1, :]
+        # const[ch] = np.exp(GC_test[2, :] / GC_test[1, :])
 
 
 def initialization(O):
@@ -63,3 +77,31 @@ def initialization(O):
 
     print("initialization completed")
     return O, W, gamma, cons
+
+def init_albedo(pg, pc, O, W):
+    print("initializaing albedo")
+
+    num_pts = O.shape[0]
+    b = np.zeros(num_pts)
+
+    for pt_id in range(0, num_pts):
+        v_id_init = np.where(W[pt_id, :] == 1)[0]
+        n_vid_init = v_id_init.size
+
+        if n_vid_init == 0:
+            continue
+
+        ades = np.zeros(n_vid_init)
+        for iter in range(0, n_vid_init):
+            img_id = v_id_init[iter]
+            gg = pg[img_id]
+            cc = pc[img_id]
+            oo = O[pt_id, img_id]
+            ades[iter] = oo / gg - cc
+
+        ades_mid = np.median(ades)
+        b[pt_id] = ades_mid
+
+    albedo = b
+    print("completed initializaing albedo")
+    return albedo
