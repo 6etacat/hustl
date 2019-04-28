@@ -23,7 +23,7 @@ def extract_patches_batch(files, names):
     num_selected = featsort.shape[0]
     num_img = num_features.shape[0]
 
-    is_display_patch = True
+    is_display_patch = False
 
     num_frames = len(files)
     num_featinfo_all = np.sum(nneighvec).astype(int)
@@ -106,6 +106,9 @@ def extract_patches_batch(files, names):
         #     # plt.imshow(rst_img)
         #     # plt.show()
 
+    to_save = np.array([patches_collected, featinfo_all])
+    np.save('../npy/patches', to_save)
+    print("collected patches saved")
 
 def extract_patches(img, x, y, s, t):
     img = img_as_float(img)
@@ -180,3 +183,6 @@ def visualize_sift_points(img, f):
     ax.plot(f[:, 1], f[:, 0], '+r', markersize=15)
     ax.axis((0, img.shape[1], img.shape[0], 0))
     plt.show()
+
+def extract_color(files, names):
+    pass

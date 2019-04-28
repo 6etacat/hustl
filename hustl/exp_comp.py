@@ -28,7 +28,8 @@ def main():
     if not os.path.isfile('../npy/selected_featsort.npy'):
         find_clique(files, names, 2)
 
-    exp_comp_2.extract_patches_batch(files, names)
+    if not os.path.isfile('../npy/patches.npy'):
+        exp_comp_2.extract_patches_batch(files, names)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
