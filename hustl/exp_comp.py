@@ -18,6 +18,11 @@ def main():
     names = ['DSC_3160.JPG', 'DSC_3161.JPG']
     files = [path + name for name in names]
 
+    #### parameters ####
+    is_augmentation = True # for extract_color
+    aug_ratio = 5 # for extract_color
+    patch_size = 30 # for extract_color
+
     #extract feature if they are not extracted already
     if not os.path.isfile('../npy/sift_total.npy'):
         extract_sift_feat(files, names)
@@ -30,6 +35,8 @@ def main():
 
     if not os.path.isfile('../npy/patches.npy'):
         exp_comp_2.extract_patches_batch(files, names)
+
+    exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########

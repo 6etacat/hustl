@@ -184,5 +184,95 @@ def visualize_sift_points(img, f):
     ax.axis((0, img.shape[1], img.shape[0], 0))
     plt.show()
 
-def extract_color(files, names):
-    pass
+def extract_color(files, names, is_augmentation, aug_ratio, patch_size):
+    print("extracting colors")
+
+    featsort = np.load('../npy/selected_featsort.npy')
+    nneighvec = np.load('../npy/selected_nneighvec.npy')
+    patches_npy = np.load('../npy/patches.npy')
+
+    num_frames = len(files)
+    patches_collected = patches_npy[0] # shape 4783, 2
+    featinfo_all = patches_npy[1] # shape 9566, 3
+
+    num_collections = patches_collected.shape[0]
+
+    if is_augmentation:
+        if aug_ratio > patch_size ** 2:
+            aug_ratio = patch_size ** 2
+
+        aug_id = np.round(np.random.rand(aug_ratio) * (patch_size**2 - 1)).astype(int)
+
+        O_0 = np.zeros((num_collections * aug_ratio, num_frames))
+        O_1 = np.zeros((num_collections * aug_ratio, num_frames))
+        O_2 = np.zeros((num_collections * aug_ratio, num_frames))
+
+    else:
+
+        O_0 = np.zeros((num_collections, num_frames))
+        O_1 = np.zeros((num_collections, num_frames))
+        O_2 = np.zeros((num_collections, num_frames))
+
+    f = fspecial_gauss(0.5 ,2) #5x5 gaussian kernal with sigma = 0.5
+
+    count = 0
+    for i in range(0, num_collections):
+        for j in range(0, int(nneighvec[i])):
+            img_id = featinfo_all[count, 0].astype(int)
+            col_id = featinfo_all[count, 2].astype(int)
+            count = count + 1
+            patch = resize(patches_collected[i, j], (patch_size, patch_size))
+
+            # if is_augmentation:
+            if False:
+
+                patch_r = patch[:,:,0]
+                patch_g = patch[:,:,1]
+                patch_b = patch[:,:,2]
+
+                val_0 = img_as_float(patch_r.ravel()[aug_id]) #might cause problem here
+                val_1 = img_as_float(patch_g.ravel()[aug_id])
+                val_2 = img_as_float(patch_b.ravel()[aug_id])
+
+                # print("val_0 shape:" + str(val_0.shape))
+                if (col_id <= 0):
+                    print(col_id)
+
+                st_id = col_id * aug_ratio
+                ed_id = (col_id+1) * aug_ratio
+
+                O_0[st_id:ed_id, img_id] = val_0
+                O_1[st_id:ed_id, img_id] = val_1
+                O_2[st_id:ed_id, img_id] = val_2
+
+            else :
+
+                mean_0 = img_as_float(np.median(patch[:,:,0]))
+                mean_1 = img_as_float(np.median(patch[:,:,1]))
+                mean_2 = img_as_float(np.median(patch[:,:,2]))
+
+                O_0[col_id, img_id] = mean_0
+                O_1[col_id, img_id] = mean_1
+                O_2[col_id, img_id] = mean_2
+
+    O = []
+    O.append(O_0)
+    O.append(O_1)
+    O.append(O_2)
+
+    O = np.array(O)
+
+    np.save('../npy/observation', O)
+    print('observation matrix saved')
+
+
+def fspecial_gauss(s, k):
+
+    """Function to mimic the 'fspecial' gaussian MATLAB function
+       obtained from https://stackoverflow.com/questions/17190649/how-to-obtain-a-gaussian-filter-in-python
+    """
+
+    #  generate a (2k+1)x(2k+1) gaussian kernel with mean=0 and sigma = s
+    probs = [np.exp(-z*z/(2*s*s))/np.sqrt(2*np.pi*s*s) for z in range(-k,k+1)]
+    kernel = np.outer(probs, probs)
+    return np.round(kernel, decimals=4)
