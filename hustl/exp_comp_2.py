@@ -255,12 +255,7 @@ def extract_color(files, names, is_augmentation, aug_ratio, patch_size):
                 O_1[col_id, img_id] = mean_1
                 O_2[col_id, img_id] = mean_2
 
-    O = []
-    O.append(O_0)
-    O.append(O_1)
-    O.append(O_2)
-
-    O = np.array(O)
+    O = np.array([O_0, O_1, O_2])
 
     np.save('../npy/observation', O)
     print('observation matrix saved')
