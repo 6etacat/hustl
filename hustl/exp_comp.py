@@ -12,6 +12,7 @@ import scipy
 import visualize
 import re
 import exp_comp_2
+import exp_comp_3
 
 def main():
     path = '../../CVFinalProj_Data/'
@@ -22,6 +23,8 @@ def main():
     is_augmentation = True # for extract_color
     aug_ratio = 5 # for extract_color
     patch_size = 30 # for extract_color
+
+    scale = 10 # for estimation
 
     #extract feature if they are not extracted already
     if not os.path.isfile('../npy/sift_total.npy'):
@@ -36,7 +39,10 @@ def main():
     if not os.path.isfile('../npy/patches.npy'):
         exp_comp_2.extract_patches_batch(files, names)
 
-    exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
+    if not os.path.isfile('../npy/observation.npy'):
+        exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
+
+    exp_comp_3.estimation(files, names, scale)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
