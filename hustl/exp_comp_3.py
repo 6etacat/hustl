@@ -35,14 +35,28 @@ def estimation(files, names, scale):
         A = np.column_stack([a_init, np.ones((num_pts ,1))])
         GC = np.vstack([g_init, np.multiply(c_init, g_init)]) # their GC is vertical
 
-        l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
+        O_l, A_est, GC_est, obj = l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
 
-        # GC_est = GC_est.T
-        # O_low[ch] = O_l
-        # albedo[ch] = np.exp(A_est[:, 1])
-        # gamma[ch] = GC_test[1, :]
-        # const[ch] = np.exp(GC_test[2, :] / GC_test[1, :])
+        GC_est = GC_est.T
+        O_low.append(O_l)
+        albedo.append(np.exp(A_est[:, 0]))
+        gamma.append(GC_est[0, :])
+        const.append(np.exp(GC_est[1, :] / GC_est[0, :]))
 
+    O_low = np.array(O_low)
+    albedo = np.array(albedo)
+    const = np.array(const)
+    gamma = np.array(gamma)
+
+    print("estimation completed, saving files")
+    np.savez('../npy/estimation', O_low=O_low, albedo=albedo, const=const, gamma=gamma)
+
+def apply(files, names):
+    estimations = np.load('../npy/estimation.npz')
+    O_low = estimations['O_low']
+    albedo = estimations['albedo']
+    const = estimations['const']
+    gamma = estimations['gamma']
 
 def initialization(O):
     print("initializing")

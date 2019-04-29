@@ -42,7 +42,10 @@ def main():
     if not os.path.isfile('../npy/observation.npy'):
         exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
 
-    exp_comp_3.estimation(files, names, scale)
+    if not os.path.isfile('../npy/estimation.npz'):
+        exp_comp_3.estimation(files, names, scale)
+
+    exp_comp_3.apply(files, names)
 
 def extract_sift_feat(files, names):
     ########## parameters ##########
