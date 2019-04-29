@@ -32,7 +32,7 @@ def estimation(files, names, scale):
         g_init = np.ones(num_img)
         c_init = np.zeros(num_img)
 
-        A = np.array([a_init, np.ones((num_pts ,1))])
+        A = np.column_stack([a_init, np.ones((num_pts ,1))])
         GC = np.vstack([g_init, np.multiply(c_init, g_init)]) # their GC is vertical
 
         l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
@@ -158,30 +158,30 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
             # update U
             tmp = mu * E + Y
             U = (tmp @ V + lbd2 * Ureg) @ inv((lr1 + mu*(V.T @ V) + lr2))
-            U[:, 2] = 1
+            U[:, 1] = 1
 
             # update V
             V = tmp.T @ U @ inv((lr1 + mu*(U.T @ U)))
 
             # update E
-            UV = U @ V
+            UV = U @ V.T
             temp1 = UV - Y/mu
 
             #l1
             temp = M - temp1
-            El1 = max(0, temp - 1/mu) + min(0, temp + 1/mu)
+            El1 = np.clip(temp - 1/mu, 0, None) + np.clip(temp + 1/mu, None, 0)
             El1 = (M-El1)
 
-            E = El1 * W + temp1 * cW
+            E = El1 * W + temp1 * cW.reshape(temp1.shape[0], temp1.shape[1])
 
             # evaluate current objective
             temp1 = np.sum(W * np.abs(M-E))
-            temp2 = norm(U, 'fro') ^ 2
-            temp3 = norm(V, 'fro') ^ 2
+            temp2 = norm(U, 'fro') ** 2
+            temp3 = norm(V, 'fro') ** 2
             temp4 = np.sum(Y * (E-UV))
-            temp5 = norm(E-UV, 'fro') ^ 2
-            temp6 = norm(U-Ureg, 'fro') ^ 2
-            obj_cur = temp1 + lbd/2*temp2 + temp3 + temp4 + mu/2*temp5 + lbd2/2*temp6
+            temp5 = norm(E-UV, 'fro') ** 2
+            temp6 = norm(U-Ureg, 'fro') ** 2
+            obj_cur = temp1 + lbd1/2*temp2 + temp3 + temp4 + mu/2*temp5 + lbd2/2*temp6
 
             # check convergence of inner loop
             if np.abs(obj_cur - obj_pre) <= 1e-10 * np.abs(obj_pre):
