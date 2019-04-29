@@ -9,7 +9,7 @@ BUILDDIR      = docs
 
 # Put it first so that "make" without argument is like "make html".
 html:
-	@$(SPHINXBUILD) "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: html Makefile
 
