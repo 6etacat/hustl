@@ -13,6 +13,8 @@ import re
 
 def extract_patches_batch(files, names):
 
+    print("extracting pataches in batch")
+
     sift_total = np.load('../npy/sift_total.npy')
     featsort = np.load('../npy/selected_featsort.npy')
     nneighvec = np.load('../npy/selected_nneighvec.npy')
@@ -111,6 +113,7 @@ def extract_patches_batch(files, names):
     print("collected patches saved")
 
 def extract_patches(img, x, y, s, t):
+    print("extracting patches")
     img = img_as_float(img)
     height = img.shape[0]
     width = img.shape[1]
@@ -131,7 +134,7 @@ def extract_patches(img, x, y, s, t):
 
     patches = []
     for i in range(0, num_feat):
-        print("extracting patches for num feat" + str(i))
+        # print("extracting patches for num feat" + str(i))
 
         xx, yy, ss, tt = x[i], y[i], s[i], t[i]
         patch_size = int(ss * 2 + 1)

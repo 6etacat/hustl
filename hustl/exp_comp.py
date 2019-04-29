@@ -16,10 +16,12 @@ import exp_comp_3
 
 def main():
     path = '../../CVFinalProj_Data/'
-    names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
+    # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
+    # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
+    names = ['DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG']
     files = [path + name for name in names]
 
-    is_hard_refresh = True
+    is_hard_refresh = False
 
     #### parameters ####
     is_augmentation = True # for extract_color
@@ -50,6 +52,8 @@ def main():
     exp_comp_3.apply(files, names)
 
 def extract_sift_feat(files, names):
+
+    print("extracting SIFT features")
     ########## parameters ##########
     step_size = 10
     num_frames = len(files)
@@ -118,13 +122,17 @@ def extract_sift_feat(files, names):
 
     to_save = np.array([num_features, num_features_cum, num_features_tot])
     np.save('../npy/sift_total', to_save)
+    print("Completed extracting SIFT features")
 
 def match_sift_feat(files, names):
+
+    print("matching SIFT features")
+
     num_frames = len(files)
     sift_total = np.load('../npy/sift_total.npy')
     num_features = sift_total[0]
 
-    is_vis_match = True #to see the matches or not
+    is_vis_match = False #to see the matches or not
 
     # M for matches, F for features
     M = [[[0] for i in range(num_frames)] for j in range(num_frames)]
@@ -228,6 +236,7 @@ def match_sift_feat(files, names):
     M, F = np.array(M), np.array(F)
     to_save = np.array([M, F, num_matches])
     np.save('../npy/sift_match', to_save)
+    print("Completed matching SIFT features")
 
 #extract match indicies for visualization purposes
 def convert_matches(matches):
@@ -243,6 +252,9 @@ def extract_dist_score(matches):
     return np.array(scores)
 
 def find_clique(files, names, num_clique):
+
+    print("finding cliques")
+
     sift_total = np.load('../npy/sift_total.npy')
     sift_match = np.load('../npy/sift_match.npy')
     num_matches = sift_match[2]
@@ -315,7 +327,7 @@ def find_clique(files, names, num_clique):
 
     np.save('../npy/selected_featsort', featsort)
     np.save('../npy/selected_nneighvec', nneighvec)
-
+    print("completed cliques")
 
     #try to use regex, do not work
     # text = re.findall('[^\n]*', text)
