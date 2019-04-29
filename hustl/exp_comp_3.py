@@ -10,6 +10,7 @@ import subprocess
 import scipy
 import visualize
 import re
+from numpy.linalg import norm, inv
 
 def estimation(files, names, scale):
     print("starting estimation")
@@ -31,8 +32,8 @@ def estimation(files, names, scale):
         g_init = np.ones(num_img)
         c_init = np.zeros(num_img)
 
-        A = np.array([a_init, np.ones(num_pts)])
-        GC = np.array([g_init, np.multiply(c_init, g_init)])
+        A = np.array([a_init, np.ones((num_pts ,1))])
+        GC = np.vstack([g_init, np.multiply(c_init, g_init)]) # their GC is vertical
 
         l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
 
@@ -82,7 +83,7 @@ def init_albedo(pg, pc, O, W):
     print("initializaing albedo")
 
     num_pts = O.shape[0]
-    b = np.zeros(num_pts)
+    b = np.zeros((num_pts,1))
 
     for pt_id in range(0, num_pts):
         v_id_init = np.where(W[pt_id, :] == 1)[0]
@@ -106,7 +107,7 @@ def init_albedo(pg, pc, O, W):
     print("completed initializaing albedo")
     return albedo
 
-def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, B, maxIterIN, rho, scale):
+def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
     """ This code is based on the MATLAB implementation by Ricardo Carbal
         of the paper Unifying Nuclear Norm and Bilinear Factorization Approaches
         for Low-rank Matrix Decomposition
@@ -119,7 +120,7 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, B, maxIterIN, rho, scale):
     maxIterOut = 5000
     max_mu = 1e20
     mu = 1e-3
-    M_norm = np.linalg.norm(M, 'fro')
+    M_norm = norm(M, 'fro')
     tol = 1e-9 * M_norm
 
     cW = np.ones(W.size) - W.ravel()
@@ -133,8 +134,78 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, B, maxIterIN, rho, scale):
     norm_two = norm_two[0]
 
     mu = 1.25 / norm_two
-    norm_inf = np.linalg.norm(Y.ravel(), np.inf) / lbd1
+    norm_inf = norm(Y.ravel(), np.inf) / lbd1
     dual_norm = max(norm_two, norm_inf)
     Y = Y / dual_norm
 
-    exit()
+    ## caching
+    lr1 = lbd1 * np.eye(r, dtype=int)
+    lbd2 = lbd1 * scale
+    lr2 = lbd2 * np.eye(r, dtype=int)
+
+    ### start main outer loop
+    print("starting main outer loop")
+    iter_OUT = 0
+    while iter_OUT < maxIterOut:
+        iter_OUT = iter_OUT+1
+
+        itr_IN = 0
+        obj_pre = 1e20
+
+        ### start inner loop
+        while itr_IN < maxIterIN:
+
+            # update U
+            tmp = mu * E + Y
+            U = (tmp @ V + lbd2 * Ureg) @ inv((lr1 + mu*(V.T @ V) + lr2))
+            U[:, 2] = 1
+
+            # update V
+            V = tmp.T @ U @ inv((lr1 + mu*(U.T @ U)))
+
+            # update E
+            UV = U @ V
+            temp1 = UV - Y/mu
+
+            #l1
+            temp = M - temp1
+            El1 = max(0, temp - 1/mu) + min(0, temp + 1/mu)
+            El1 = (M-El1)
+
+            E = El1 * W + temp1 * cW
+
+            # evaluate current objective
+            temp1 = np.sum(W * np.abs(M-E))
+            temp2 = norm(U, 'fro') ^ 2
+            temp3 = norm(V, 'fro') ^ 2
+            temp4 = np.sum(Y * (E-UV))
+            temp5 = norm(E-UV, 'fro') ^ 2
+            temp6 = norm(U-Ureg, 'fro') ^ 2
+            obj_cur = temp1 + lbd/2*temp2 + temp3 + temp4 + mu/2*temp5 + lbd2/2*temp6
+
+            # check convergence of inner loop
+            if np.abs(obj_cur - obj_pre) <= 1e-10 * np.abs(obj_pre):
+                break
+            else:
+                obj_pre = obj_cur
+                itr_IN = itr_IN + 1
+
+            leq = E-UV
+            stopC = norm(leq, 'fro')
+            if stopC < tol:
+                break
+            else:
+                # update lagrange multiplier
+                Y = Y + mu * leq
+                # update penalty parameter
+                mu = min(max_mu, mu * rho)
+
+            # denormalization
+            U_est = U
+            V_est = V
+
+            M_est = U_est @ V_est
+            obj = np.sum(W * np.abs(M-E)) + lbd1/2*(norm(U, 'fro')) + norm(V, 'fro')
+
+    print("finished")
+    return M_est, U_est, V_est, obj
