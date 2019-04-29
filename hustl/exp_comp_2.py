@@ -52,7 +52,7 @@ def extract_patches_batch(files, names):
 
     patches_all = []
     for k in range(0, num_frames):
-        print("extracting patches batch" + str(k))
+        print("extracting patches batch " + str(k))
         img = io.imread(files[k])
         img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
         k_ind = np.where(featinfo_allsort[:,0] == k)[0]
@@ -113,7 +113,7 @@ def extract_patches_batch(files, names):
     print("collected patches saved")
 
 def extract_patches(img, x, y, s, t):
-    print("extracting patches")
+    print("extracting patches function called")
     img = img_as_float(img)
     height = img.shape[0]
     width = img.shape[1]

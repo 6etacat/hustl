@@ -67,7 +67,7 @@ def apply(files, names):
         transfer_id = 1
     else:
         is_style_transfer = False
-        transfer_id = 1
+        transfer_id = 1 # mayb should be 0
 
     for i in range(0, num_frames):
         img = io.imread(files[i])
@@ -105,8 +105,6 @@ def apply(files, names):
         plt.imshow(img)
         plt.show()
 
-
-
 def initialization(O):
     print("initializing")
 
@@ -143,7 +141,7 @@ def initialization(O):
     return O, W, gamma, cons
 
 def init_albedo(pg, pc, O, W):
-    print("initializaing albedo")
+    print("initializing albedo")
 
     num_pts = O.shape[0]
     b = np.zeros((num_pts,1))
@@ -167,7 +165,7 @@ def init_albedo(pg, pc, O, W):
         b[pt_id] = ades_mid
 
     albedo = b
-    print("completed initializaing albedo")
+    print("completed initializing albedo")
     return albedo
 
 def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
@@ -267,7 +265,7 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
             U_est = U
             V_est = V
 
-            M_est = U_est @ V_est
+            M_est = U_est @ V_est.T
             obj = np.sum(W * np.abs(M-E)) + lbd1/2*(norm(U, 'fro')) + norm(V, 'fro')
 
     print("finished")
