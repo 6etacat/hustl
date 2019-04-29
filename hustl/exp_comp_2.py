@@ -13,7 +13,7 @@ import re
 
 def extract_patches_batch(files, names):
 
-    print("extracting pataches in batch")
+    print("extracting patches in batch")
 
     sift_total = np.load('../npy/sift_total.npy')
     featsort = np.load('../npy/selected_featsort.npy')
@@ -55,10 +55,10 @@ def extract_patches_batch(files, names):
         print("extracting patches batch" + str(k))
         img = io.imread(files[k])
         img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
-        k_ind = np.where(featinfo_allsort[:,0] == k)
+        k_ind = np.where(featinfo_allsort[:,0] == k)[0]
         t_ind = featinfo_allsort[k_ind, 1].flatten().astype(int)
         si_f = np.load('../npy/'+names[k]+"_f.npy")
-        Sf = si_f[t_ind, :] # s_f should always flip
+        Sf = si_f[np.clip(t_ind, 0, si_f.shape[0] - 1), :] # s_f should always flip
         # visualize selected points
         # visualize_sift_points(img, Sf[:10, :])
 

@@ -18,7 +18,9 @@ def main():
     path = '../../CVFinalProj_Data/'
     # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
     # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
-    names = ['DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG']
+    names = ['DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
+    # names = ['DSC_3115.JPG', 'DSC_3116.JPG']
+
     files = [path + name for name in names]
 
     is_hard_refresh = False
@@ -107,7 +109,6 @@ def extract_sift_feat(files, names):
         # ax.plot(f[:, 1], f[:, 0], '+r', markersize=15)
         # ax.axis((0, img.shape[1], img.shape[0], 0))
         # plt.show()
-        # exit()
 
         #saving the extracted features
         np.save('../npy/'+names[i]+"_f", f)
@@ -266,9 +267,10 @@ def find_clique(files, names, num_clique):
     num_features_tot = sift_total[2]
 
     num_frames = len(files)
+    # this part is ok - dmii
 
     ## similarity matrtix S
-    Si, Sj, Ss = np.zeros((1, num_matches)), np.zeros((1, num_matches)), np.ones((1, num_matches))
+    Si, Sj, Ss = np.zeros(num_matches), np.zeros(num_matches), np.ones(num_matches)
     idx = 0
 
     for i in range(0, num_frames):
@@ -341,7 +343,6 @@ def find_clique(files, names, num_clique):
     #     print(temp)
     #     temp2 = re.findall('[\S]*', temp)
     #     print(temp2[0])
-    #     # exit()
     #     nelement = len(temp2)
     #     arr = np.zeros((1, nelement))
     #     for j in range(0, nelement):
@@ -367,4 +368,3 @@ if __name__ == '__main__':
 # ax.plot(f[:20, 1], f[:20, 0], '+r', markersize=15)
 # ax.axis((0, img.shape[1], img.shape[0], 0))
 # plt.show()
-# exit()
