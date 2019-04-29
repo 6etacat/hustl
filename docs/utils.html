@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>utils &#8212; HUSTL 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to HUSTL’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="utils">
+<h1>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="code docutils literal notranslate"><span class="pre">utils</span></code> module includes utility functions needed by multiple parts of
+the program.</p>
+<div class="section" id="module-hustl.utils">
+<span id="utils-module"></span><h2>utils module<a class="headerlink" href="#module-hustl.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="hustl.utils.display_img">
+<code class="descclassname">hustl.utils.</code><code class="descname">display_img</code><span class="sig-paren">(</span><em>img</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.display_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays imgage</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.utils.extract_sift_features">
+<code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>step_size=10</em>, <em>boundary_pct=0.05</em>, <em>scale=0.2608695652173913</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts key points and their SIFT feature representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>Image</em>) – An image to be analyzed</p></li>
+<li><p><strong>step_size</strong> (<em>int</em>) – Steps for cyvlfeat dsift function</p></li>
+<li><p><strong>boundary_pct</strong> (<em>float</em>) – Percentage of image to be seen as boundary</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale of rescaling (used to reduce computation)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>num_features</strong> (<em>int</em>) - Number of feature points in the image</p></li>
+<li><p><strong>f</strong> (<em>array</em>) - Frames (keypoints) of the result</p></li>
+<li><p><strong>d</strong> (<em>array</em>) - Descriptor of corresponding frames</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.utils.read_img">
+<code class="descclassname">hustl.utils.</code><code class="descname">read_img</code><span class="sig-paren">(</span><em>fname</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.read_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.utils.read_imgs">
+<code class="descclassname">hustl.utils.</code><code class="descname">read_imgs</code><span class="sig-paren">(</span><em>*fnames</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.read_imgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads images with concurrency</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.utils.test">
+<code class="descclassname">hustl.utils.</code><code class="descname">test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">HUSTL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-hustl.utils">utils module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to HUSTL’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Michael Mao, Jiaju Ma, James Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
