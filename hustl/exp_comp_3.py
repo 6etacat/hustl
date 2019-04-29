@@ -58,6 +58,52 @@ def apply(files, names):
     const = estimations['const']
     gamma = estimations['gamma']
 
+    num_frames = len(files)
+    if num_frames == 2:
+        is_style_transfer = True
+        transfer_id = 1
+    else:
+        is_style_transfer = False
+        transfer_id = 1
+
+    for i in range(0, num_frames):
+        img = io.imread(files[i])
+        img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
+
+        img = img_as_float(img)
+        for ch in range(0,3):
+            cc = const[ch, i]
+            gg = gamma[ch, i]
+            ii = img[:, :, ch]
+
+            ### prevent abrupt change
+            if (gg < 0.5) or (gg > 3):
+                gg = 1
+
+            if (cc < 0.3) or (cc > 3):
+                cc = 1
+
+            ### style transfer
+            if is_style_transfer:
+                ii = ii ** (1/gg) / cc
+                cc2 = const[ch, transfer_id]
+                gg2 = gamma[ch, transfer_id]
+                ii = (ii * cc2) ** gg2
+                ii = np.clip(ii, -1, 1)
+                # ii[ii > 1] = 1
+                # ii[ii < 0] = 0
+                img[:, :, ch] = ii
+
+            else:
+                img[:, :, ch] = (ii ** (1/gg)) / cc
+                img = np.clip(img, -1, 1)
+
+        img = img_as_ubyte(img)
+        plt.imshow(img)
+        plt.show()
+
+
+
 def initialization(O):
     print("initializing")
 

@@ -16,8 +16,10 @@ import exp_comp_3
 
 def main():
     path = '../../CVFinalProj_Data/'
-    names = ['DSC_3160.JPG', 'DSC_3161.JPG']
+    names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
     files = [path + name for name in names]
+
+    is_hard_refresh = True
 
     #### parameters ####
     is_augmentation = True # for extract_color
@@ -27,22 +29,22 @@ def main():
     scale = 10 # for estimation
 
     #extract feature if they are not extracted already
-    if not os.path.isfile('../npy/sift_total.npy'):
+    if is_hard_refresh or (not os.path.isfile('../npy/sift_total.npy')):
         extract_sift_feat(files, names)
 
-    if not os.path.isfile('../npy/sift_match.npy'):
+    if is_hard_refresh or (not os.path.isfile('../npy/sift_match.npy')):
         match_sift_feat(files, names)
 
-    if not os.path.isfile('../npy/selected_featsort.npy'):
+    if is_hard_refresh or (not os.path.isfile('../npy/selected_featsort.npy')):
         find_clique(files, names, 2)
 
-    if not os.path.isfile('../npy/patches.npy'):
+    if is_hard_refresh or (not os.path.isfile('../npy/patches.npy')):
         exp_comp_2.extract_patches_batch(files, names)
 
-    if not os.path.isfile('../npy/observation.npy'):
+    if is_hard_refresh or (not os.path.isfile('../npy/observation.npy')):
         exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
 
-    if not os.path.isfile('../npy/estimation.npz'):
+    if is_hard_refresh or (not os.path.isfile('../npy/estimation.npz')):
         exp_comp_3.estimation(files, names, scale)
 
     exp_comp_3.apply(files, names)
