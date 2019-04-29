@@ -34,14 +34,30 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
     """
     Extracts key points and their SIFT feature representations.
 
-    :param Image img: An image to be analyzed
-    :param int step_size: Steps for cyvlfeat dsift function
-    :param float boundary_pct: Percentage of image to be seen as boundary
-    :param float scale: Scale of rescaling (used to reduce computation)
-    :returns:
-        - **num_features** (*int*) - Number of feature points in the image
-        - **f** (*array*) - Frames (keypoints) of the result
-        - **d** (*array*) - Descriptor of corresponding frames
+    Finds key points in the images and save them as frames ``f``, then compute
+    the SIFT descriptor for these key points and save them as descriptors ``d``
+    . Finally, compute the number of key points in the image and save it as
+    ``num_features``.
+
+    Parameters
+    ----------
+        img: Image
+            An image to be analyzed
+        step_size: int
+            Steps for cyvlfeat dsift function
+        boundary_pct: float
+            Percentage of image to be seen as boundary
+        scale: float
+            Scale of rescaling (used to reduce computation)
+
+    Returns
+    -------
+        num_features: int
+            Number of feature points in the image
+        f: array
+            Frames (key points) of the result
+        d: array
+            Descriptor of corresponding frames
     """
     # make sure image is grayscale
     img = color.rgb2gray(img)
@@ -63,6 +79,21 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
     num_features = len(f)
 
     return num_features, f, d
+
+def test():
+    """
+    one line summary
+
+    longer explanation
+
+    a : int
+        parameter description
+
+    servers : list
+        servers to use
+    msg : str
+        logging message string
+    """
 
 
 # def match_features(*imgs):
