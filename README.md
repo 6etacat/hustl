@@ -33,3 +33,17 @@ With custom title and comment:
 Without custom title and comment:
 
 `sh github_helper/pull_request.sh --no-edit`
+
+## Docs and Docs Generation
+
+Please write [numpy style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) in your code. Refer to `utils.extract_sift_features` for example. 
+
+#### Linux or Mac OS
+
+- Create or update docs: `make`
+- Delete docs: `make clean`
+
+#### Windows
+
+- Create or update docs: `make.bat`
+- Delete docs: `make.bat clean`

@@ -47,6 +47,10 @@ the program.</p>
 <dt id="hustl.utils.extract_sift_features">
 <code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>step_size=10</em>, <em>boundary_pct=0.05</em>, <em>scale=0.2608695652173913</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts key points and their SIFT feature representations.</p>
+<p>Finds key points in the images and save them as frames <code class="docutils literal notranslate"><span class="pre">f</span></code>, then compute
+the SIFT descriptor for these key points and save them as descriptors <code class="docutils literal notranslate"><span class="pre">d</span></code>
+. Finally, compute the number of key points in the image and save it as
+<code class="docutils literal notranslate"><span class="pre">num_features</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -58,9 +62,9 @@ the program.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>num_features</strong> (<em>int</em>) - Number of feature points in the image</p></li>
-<li><p><strong>f</strong> (<em>array</em>) - Frames (keypoints) of the result</p></li>
-<li><p><strong>d</strong> (<em>array</em>) - Descriptor of corresponding frames</p></li>
+<li><p><strong>num_features</strong> (<em>int</em>) – Number of feature points in the image</p></li>
+<li><p><strong>f</strong> (<em>array</em>) – Frames (key points) of the result</p></li>
+<li><p><strong>d</strong> (<em>array</em>) – Descriptor of corresponding frames</p></li>
 </ul>
 </p>
 </dd>
@@ -82,7 +86,17 @@ the program.</p>
 <dl class="function">
 <dt id="hustl.utils.test">
 <code class="descclassname">hustl.utils.</code><code class="descname">test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.test" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>one line summary</p>
+<p>longer explanation</p>
+<dl class="simple">
+<dt>a<span class="classifier">int</span></dt><dd><p>parameter description</p>
+</dd>
+<dt>servers<span class="classifier">list</span></dt><dd><p>servers to use</p>
+</dd>
+<dt>msg<span class="classifier">str</span></dt><dd><p>logging message string</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 </div>
