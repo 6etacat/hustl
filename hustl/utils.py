@@ -80,21 +80,6 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
 
     return num_features, f, d
 
-def test():
-    """
-    one line summary
-
-    longer explanation
-
-    a : int
-        parameter description
-
-    servers : list
-        servers to use
-    msg : str
-        logging message string
-    """
-
 
 # def match_features(*imgs):
 #     for i in range(len(imgs)):
