@@ -13,7 +13,7 @@ import re
 from numpy.linalg import norm, inv
 
 def estimation(files, names, scale):
-    print("starting estimation")
+    print("-----starting estimation-----")
 
     O = np.load('../npy/observation.npy')
     O, W, _, _ = initialization(O)
@@ -51,9 +51,9 @@ def estimation(files, names, scale):
     print("estimation completed, saving files")
     np.savez('../npy/estimation', O_low=O_low, albedo=albedo, const=const, gamma=gamma)
 
-def apply(files, names):
+def apply(files, names, downscale_factor):
 
-    print("begin applying everything")
+    print("-----begin applying everything-----")
 
     estimations = np.load('../npy/estimation.npz')
     O_low = estimations['O_low']
@@ -71,7 +71,7 @@ def apply(files, names):
 
     for i in range(0, num_frames):
         img = io.imread(files[i])
-        img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
+        img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=True, mode='reflect')
 
         img = img_as_float(img)
         for ch in range(0,3):
@@ -102,11 +102,15 @@ def apply(files, names):
                 img = np.clip(img, -1, 1)
 
         img = img_as_ubyte(img)
-        plt.imshow(img)
-        plt.show()
+        path = '../res/' + names[i].split(".")[0] + "_res.jpg"
+        io.imsave(path, img)
+        print("img " + str(i) + " saved")
+
+        # plt.imshow(img)
+        # plt.show()
 
 def initialization(O):
-    print("initializing")
+    print("--initializing--")
 
     #used to initialize albedo, gamma, constants, and indicator mat
     num_img = O[0].shape[1]
@@ -141,7 +145,7 @@ def initialization(O):
     return O, W, gamma, cons
 
 def init_albedo(pg, pc, O, W):
-    print("initializing albedo")
+    print("--initializing albedo--")
 
     num_pts = O.shape[0]
     b = np.zeros((num_pts,1))
@@ -173,12 +177,12 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
         of the paper Unifying Nuclear Norm and Bilinear Factorization Approaches
         for Low-rank Matrix Decomposition
     """
-    print("starting l1_rpca_mask_alm_fast()")
+    print("--starting l1_rpca_mask_alm_fast()--")
 
     ## can add GPU option. not coded yet
 
     m, n = M.shape[0], M.shape[1]
-    maxIterOut = 5000
+    maxIterOut = 2500
     max_mu = 1e20
     mu = 1e-3
     M_norm = norm(M, 'fro')

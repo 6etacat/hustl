@@ -18,32 +18,38 @@ def main():
     path = '../../CVFinalProj_Data/'
     # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
     # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
-    names = ['DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
+    names = ['DSC_3113.JPG', 'DSC_3114.JPG', 'DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
     # names = ['DSC_3115.JPG', 'DSC_3116.JPG']
 
     files = [path + name for name in names]
 
-    is_hard_refresh = False
+    is_hard_refresh = True
 
     #### parameters ####
+    downscale_factor = 6/23
+
     is_augmentation = True # for extract_color
     aug_ratio = 5 # for extract_color
     patch_size = 30 # for extract_color
 
     scale = 10 # for estimation
 
+    num_feat_kept = 2000
+    #### end parameters ####
+
+
     #extract feature if they are not extracted already
     if is_hard_refresh or (not os.path.isfile('../npy/sift_total.npy')):
-        extract_sift_feat(files, names)
+        extract_sift_feat(files, names, num_feat_kept, downscale_factor)
 
     if is_hard_refresh or (not os.path.isfile('../npy/sift_match.npy')):
-        match_sift_feat(files, names)
+        match_sift_feat(files, names, downscale_factor)
 
     if is_hard_refresh or (not os.path.isfile('../npy/selected_featsort.npy')):
         find_clique(files, names, 2)
 
     if is_hard_refresh or (not os.path.isfile('../npy/patches.npy')):
-        exp_comp_2.extract_patches_batch(files, names)
+        exp_comp_2.extract_patches_batch(files, names, downscale_factor)
 
     if is_hard_refresh or (not os.path.isfile('../npy/observation.npy')):
         exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
@@ -51,11 +57,11 @@ def main():
     if is_hard_refresh or (not os.path.isfile('../npy/estimation.npz')):
         exp_comp_3.estimation(files, names, scale)
 
-    exp_comp_3.apply(files, names)
+    exp_comp_3.apply(files, names, downscale_factor)
 
-def extract_sift_feat(files, names):
+def extract_sift_feat(files, names, num_feat_kept, downscale_factor):
 
-    print("extracting SIFT features")
+    print("-----extracting SIFT features-----")
     ########## parameters ##########
     step_size = 10
     num_frames = len(files)
@@ -80,7 +86,7 @@ def extract_sift_feat(files, names):
         img = color.rgb2gray(img)
 
         #downscale image
-        img = rescale(img, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
+        img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
         # trick for extracting less features
         # img = rescale(img, 2, anti_aliasing=True, multichannel=False, mode='reflect')
         img_h = img.shape[0]
@@ -88,11 +94,20 @@ def extract_sift_feat(files, names):
 
         if is_single_scale:
             #dsift can be faster
-            f,d = vlfeat.sift.sift(img, peak_thresh=0.9, edge_thresh=30, compute_descriptor=True)
+            f,d = vlfeat.sift.sift(img, peak_thresh=0.98, edge_thresh=5, compute_descriptor=True)
         else:
             f,d = vlfeat.sift.sift(img, compute_descriptor=True)
 
         #each row of f = [Y, X, Scale, Orientation], f[:, 0 ] is Y, f[:, 1] is X
+
+        print("Number of features extracted: " + str(f.shape[0]))
+
+        num_feat_kept = min(num_feat_kept, f.shape[0])
+        keep_idx = np.random.permutation(f.shape[0])[:num_feat_kept]
+        f = f[keep_idx]
+        d = d[keep_idx]
+
+        print("Number of features kept: " + str(f.shape[0]))
 
         #if is_remove_repetitive
 
@@ -125,9 +140,9 @@ def extract_sift_feat(files, names):
     np.save('../npy/sift_total', to_save)
     print("Completed extracting SIFT features")
 
-def match_sift_feat(files, names):
+def match_sift_feat(files, names, downscale_factor):
 
-    print("matching SIFT features")
+    print("-----matching SIFT features-----")
 
     num_frames = len(files)
     sift_total = np.load('../npy/sift_total.npy')
@@ -227,8 +242,8 @@ def match_sift_feat(files, names):
                 print("visualizing matches")
                 img1 = color.rgb2gray(io.imread(files[i]))
                 img2 = color.rgb2gray(io.imread(files[j]))
-                img1 = rescale(img1, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
-                img2 = rescale(img2, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
+                img1 = rescale(img1, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
+                img2 = rescale(img2, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
                 matches[:, 0] = mi
                 matches[:, 1] = mj
                 matches = matches[np.random.permutation(matches.shape[0])][:50]
@@ -254,7 +269,7 @@ def extract_dist_score(matches):
 
 def find_clique(files, names, num_clique):
 
-    print("finding cliques")
+    print("-----finding cliques-----")
 
     sift_total = np.load('../npy/sift_total.npy')
     sift_match = np.load('../npy/sift_match.npy')

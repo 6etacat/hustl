@@ -11,9 +11,9 @@ import scipy
 import visualize
 import re
 
-def extract_patches_batch(files, names):
+def extract_patches_batch(files, names, downscale_factor):
 
-    print("extracting patches in batch")
+    print("-----extracting patches in batch-----")
 
     sift_total = np.load('../npy/sift_total.npy')
     featsort = np.load('../npy/selected_featsort.npy')
@@ -54,7 +54,7 @@ def extract_patches_batch(files, names):
     for k in range(0, num_frames):
         print("extracting patches batch " + str(k))
         img = io.imread(files[k])
-        img = rescale(img, 6/23, anti_aliasing=True, multichannel=True, mode='reflect')
+        img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=True, mode='reflect')
         k_ind = np.where(featinfo_allsort[:,0] == k)[0]
         t_ind = featinfo_allsort[k_ind, 1].flatten().astype(int)
         si_f = np.load('../npy/'+names[k]+"_f.npy")
@@ -113,7 +113,7 @@ def extract_patches_batch(files, names):
     print("collected patches saved")
 
 def extract_patches(img, x, y, s, t):
-    print("extracting patches function called")
+    print("--extracting patches function called--")
     img = img_as_float(img)
     height = img.shape[0]
     width = img.shape[1]
@@ -188,7 +188,7 @@ def visualize_sift_points(img, f):
     plt.show()
 
 def extract_color(files, names, is_augmentation, aug_ratio, patch_size):
-    print("extracting colors")
+    print("-----extracting colors-----")
 
     featsort = np.load('../npy/selected_featsort.npy')
     nneighvec = np.load('../npy/selected_nneighvec.npy')
