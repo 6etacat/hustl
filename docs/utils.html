@@ -46,7 +46,7 @@ the program.</p>
 
 <dl class="function">
 <dt id="hustl.utils.extract_sift_features">
-<code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>step_size=10</em>, <em>boundary_pct=0.05</em>, <em>scale=0.2608695652173913</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>step_size=10</em>, <em>boundary_pct=0.05</em>, <em>scale=0.26</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts key points and their SIFT feature representations.</p>
 <p>Finds key points in the images and save them as frames <code class="docutils literal notranslate"><span class="pre">f</span></code>, then compute
 the SIFT descriptor for these key points and save them as descriptors <code class="docutils literal notranslate"><span class="pre">d</span></code>
@@ -64,10 +64,39 @@ the SIFT descriptor for these key points and save them as descriptors <code clas
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>num_features</strong> (<em>int</em>) – Number of feature points in the image</p></li>
-<li><p><strong>f</strong> (<em>array</em>) – Frames (key points) of the result</p></li>
-<li><p><strong>d</strong> (<em>array</em>) – Descriptor of corresponding frames</p></li>
+<li><p><strong>fd</strong> (<em>Set(f, d)</em>) –</p>
+<ul>
+<li><p><strong>f</strong> (numpy.ndarray[float]) - Frames (key points) of the result</p></li>
+<li><p><strong>d</strong> (numpy.ndarray[float]) - Descriptor of corresponding frames</p></li>
+</ul>
+</li>
 </ul>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.utils.match_features">
+<code class="descclassname">hustl.utils.</code><code class="descname">match_features</code><span class="sig-paren">(</span><em>*fd</em>, <em>gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.match_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Match features in multiple images</p>
+<p>TODO: Detailed description</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*fd</strong> (<em>Sequence</em><em>[</em><em>Set</em><em>(</em><em>f</em><em>, </em><em>d</em><em>)</em><em>]</em>) – <ul>
+<li><p><strong>f</strong> (numpy.ndarray[float]) - Frames (key points) of the image</p></li>
+<li><p><strong>d</strong> (numpy.ndarray[float]) - Descriptor of corresponding frames</p></li>
+</ul>
+</p></li>
+<li><p><strong>gpu</strong> (<em>Bool</em>) – Whether to use GPU for calculation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>num_features</strong> – Number of feature points in the image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -105,10 +134,7 @@ the SIFT descriptor for these key points and save them as descriptors <code clas
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-hustl.utils">utils module</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">utils</a></li>
 </ul>
 
 <div class="relations">

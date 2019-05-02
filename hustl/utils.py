@@ -1,5 +1,5 @@
 # import numpy as np
-# import cv2
+import cv2
 from cyvlfeat.sift import dsift
 import rawpy as rp
 import matplotlib.pyplot as plt
@@ -17,6 +17,7 @@ def read_imgs(*fnames, debug=False):
             if debug:
                 print(f"Finished reading {fname}")
             imgs.append(img)
+    return imgs
 
 
 def read_img(fname):
@@ -30,7 +31,7 @@ def display_img(img):
     plt.show()
 
 
-def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
+def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
     """
     Extracts key points and their SIFT feature representations.
 
@@ -54,10 +55,9 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
     -------
         num_features: int
             Number of feature points in the image
-        f: array
-            Frames (key points) of the result
-        d: array
-            Descriptor of corresponding frames
+        fd: Set(f, d)
+            - **f** (numpy.ndarray[float]) - Frames (key points) of the result
+            - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
     """
     # make sure image is grayscale
     img = color.rgb2gray(img)
@@ -71,16 +71,45 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=6/23):
 
     # remove features near boundary
     if boundary_pct > 0:
-        f = f[f[:, 1] > (img_w * boundary_pct)]
-        f = f[f[:, 1] < (img_w * (1-boundary_pct))]
-        f = f[f[:, 0] > (img_h * boundary_pct)]
-        f = f[f[:, 0] < (img_h * (1-boundary_pct))]
+        in_boundary = ((f[:, 1] > (img_w * boundary_pct)) *
+                      (f[:, 1] < (img_w * (1 - boundary_pct))) *
+                      (f[:, 0] > (img_h * boundary_pct)) *
+                      (f[:, 0] < (img_h * (1-boundary_pct))))
+        f = f[in_boundary]
+        d = d[in_boundary]
 
+    assert len(f) == len(d)
     num_features = len(f)
 
-    return num_features, f, d
+    return num_features, (f, d)
 
 
-# def match_features(*imgs):
-#     for i in range(len(imgs)):
-#         for j in range
+def match_features(*fd, gpu=False):
+    """
+    Match features in multiple images
+
+    TODO: Detailed description
+
+    Parameters
+    ----------
+        *fd: Sequence[Set(f, d)]
+            - **f** (numpy.ndarray[float]) - Frames (key points) of the image
+            - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
+
+        gpu: Bool
+            Whether to use GPU for calculation
+
+    Returns
+    -------
+        num_features: int
+            Number of feature points in the image
+    """
+    if gpu:
+        matcher = None  # TODO: Write GPU matcher
+    else:
+        matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
+    base_d = fd[0][1]
+    for i in range(1, len(fd)):
+        matches = matcher.match(base_d, fd[i][1])
+    # FIXME: Not finished
+    return sorted(matches, key=lambda x: x.distance)[:5]
