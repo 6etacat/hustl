@@ -72,9 +72,9 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
     # remove features near boundary
     if boundary_pct > 0:
         in_boundary = ((f[:, 1] > (img_w * boundary_pct)) *
-                      (f[:, 1] < (img_w * (1 - boundary_pct))) *
-                      (f[:, 0] > (img_h * boundary_pct)) *
-                      (f[:, 0] < (img_h * (1-boundary_pct))))
+                       (f[:, 1] < (img_w * (1 - boundary_pct))) *
+                       (f[:, 0] > (img_h * boundary_pct)) *
+                       (f[:, 0] < (img_h * (1-boundary_pct))))
         f = f[in_boundary]
         d = d[in_boundary]
 
@@ -84,7 +84,7 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
     return num_features, (f, d)
 
 
-def match_features(*fd, gpu=False):
+def match_features(*fd, match_num=80, gpu=False, visualize=False):
     """
     Match features in multiple images
 
@@ -96,20 +96,57 @@ def match_features(*fd, gpu=False):
             - **f** (numpy.ndarray[float]) - Frames (key points) of the image
             - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
 
+        match_num: int
+            Number of matches to be extracted
+
         gpu: Bool
             Whether to use GPU for calculation
 
+        visualize: Bool
+            Whether to visualize matches
+
     Returns
     -------
-        num_features: int
-            Number of feature points in the image
+        best_matches: Sequence(numpy.ndarray[float])
+            The frame (key points) of best matches among the given images in
+            descending order
     """
     if gpu:
         matcher = None  # TODO: Write GPU matcher
     else:
         matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
-    base_d = fd[0][1]
+    d = fd[0][1]
+    matches = []
     for i in range(1, len(fd)):
-        matches = matcher.match(base_d, fd[i][1])
-    # FIXME: Not finished
-    return sorted(matches, key=lambda x: x.distance)[:5]
+        match = matcher.match(d, fd[i][1])
+        matches.append(match)
+        print(match[0].queryIdx)
+        print(match[0].trainIdx)
+        print(match[0].imgIdx)
+        print(match[0].distance)
+    # best_matches = _find_best_matches(matches)[:match_num]
+    # return best_matches
+
+
+def _find_best_matches(matches):
+    """Helper to arrange matches from best to worst"""
+    base_f = [m.queryIdx for m in matches[0]]
+    dist = dict(zip(base_f, [0] * len(base_f)))
+    for match in matches:
+        for frame in match:
+            dist[frame.trainIdx] += frame.distance
+    sorted_dist = sorted(dist.items(), key=lambda x: x[1])
+    sorted_base_f = [x[0] for x in sorted_dist]
+    sorted_matches = [sorted_base_f]
+    for match in matches:
+        match_dict = {}
+        for frame in match:
+            match_dict[frame.queryIdx] = frame.trainIdx
+        sorted_matches.append([match_dict[f] for f in sorted_base_f])
+    return sorted_matches
+
+
+def visualize_matches(best_matches, imgs):
+    for i in range(len(imgs) - 1):
+        # cv.drawMatches
+        pass
