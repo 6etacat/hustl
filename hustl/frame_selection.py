@@ -3,6 +3,7 @@ import hyperparameters as hp
 import numpy as np
 import cv2
 import skvideo.io
+import skimage.io
 from math import inf
 from numpy.linalg import norm
 import os
@@ -27,14 +28,17 @@ def main():
     if not os.path.isfile(path+name+'_naive_hyperlapse.mp4'):
         generate_hyperlapse_video(name, frames, path, "naive")
         print("----naive_hyperlapse_video_generated----")
+    if not os.path.isfile(path+name+'_0.jpg'):
+        generate_optimal_frame_images(name, frames, path)
+        print("----optimal_frame_images_generated----")
 
 def extract_sift_features(name, frames, num_frames):
     f = np.zeros((num_frames, 100, 4))
     d = np.zeros((num_frames, 100, 128))
     for i in range(num_frames):
-        _, f_i, d_i = utils.extract_sift_features(frames[i], scale=hp.down_scale)
-        f[i] = f_i[:100]
-        d[i] = d_i[:100]
+        _, f_i, d_i = utils.extract_sift_features(frames[i], scale=hp.down_scale, num_keypoints=100)
+        f[i] = f_i
+        d[i] = d_i
     np.save('../npy/'+name+"_f",f)
     np.save('../npy/'+name+"_d",d)
 
@@ -119,7 +123,15 @@ def generate_hyperlapse_video(name, frames, path, option):
         p = np.linspace(0,len(frames),num=num_frames,endpoint=False,dtype=int)
     for i in range(num_frames):
         hyperlapse[i] = frames[p[i]]
-    skvideo.io.vwrite(path+name+"_"+option+'_hyperlapse.mp4', hyperlapse)
+    skvideo.io.vwrite(path+name+'_'+option+'_hyperlapse.mp4', hyperlapse)
+
+def generate_optimal_frame_images(name, frames, path):
+    p = np.int32(np.load('../npy/'+name+'_p.npy'))
+    num_frames = len(p)
+    (img_h, img_w, img_c) = frames[0].shape
+    hyperlapse = np.zeros((num_frames, img_h, img_w, img_c))
+    for i in range(num_frames):
+        skimage.io.imsave(path+name+'_'+str(i)+'.jpg',frames[p[i]])
 
 
 if __name__ == '__main__':
