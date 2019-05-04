@@ -10,14 +10,15 @@ from scipy import ndimage
 
 
 def extract_sift_features(img, step_size=10, single_scale=True,
-                          region_scale=0.05, scale=2):
+                          region_scale=0.05, down_scale=6/23):
     # make sure image is grayscale
     img = color.rgb2gray(img)
     # downscale image to extract less features
-    img = rescale(img, scale=6 / 23, anti_aliasing=True, multichannel=False,
+    img = rescale(img, scale=down_scale, anti_aliasing=True, multichannel=False,
                   mode='reflect')
 
-    img_h, img_w = img.shape[0, 1]
+    # img_h, img_w = img.shape[0, 1]
+    img_h, img_w = img.shape[0], img.shape[1]
 
     if single_scale: # TODO: What does this mean exactly? How is scale used?
         # sift can be faster TODO: What's this comment about?
@@ -26,13 +27,19 @@ def extract_sift_features(img, step_size=10, single_scale=True,
     else:
         f, d = sift(img, compute_descriptor=True)
 
-    # remove features near boundary
+    # remove features and descriptors near boundary
     if region_scale > 0:
-        f = f[f[:, 1] > (img_w * region_scale)]
-        f = f[f[:, 1] < (img_w * (1-region_scale))]
-        f = f[f[:, 0] > (img_h * region_scale)]
-        f = f[f[:, 0] < (img_h * (1-region_scale))]
+        left_mask = f[:, 1] > (img_w * region_scale) # remove left boarder
+        f, d = f[left_mask], d[left_mask]
+        right_mask = f[:, 1] < (img_w * (1-region_scale)) # remove right boarder
+        f, d = f[right_mask], d[right_mask]
+        bottom_mask = f[:, 0] > (img_h * region_scale) # remove bottown boarder
+        f, d = f[bottom_mask], d[bottom_mask]
+        top_mask = f[:, 0] < (img_h * (1-region_scale)) # remove top boarder
+        f, d = f[top_mask], d[top_mask]
+        
 
     num_features = len(f)
 
     return num_features, f, d
+ 
