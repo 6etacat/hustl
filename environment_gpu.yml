@@ -21,6 +21,7 @@ dependencies:
   - cyvlfeat=0.4.6
   - opencv=4.0.0
   - hub=2.11.2
+  - sphinx=2.0.1
   - pip>=18.1
   - pip:
     - rawpy==0.13.1

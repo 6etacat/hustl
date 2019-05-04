@@ -1,45 +1,114 @@
-import numpy as np
-import cv2
-import cyvlfeat as vlfeat
-from cyvlfeat.sift import sift
+# import numpy as np
+from cyvlfeat.sift import dsift
 import rawpy as rp
 import matplotlib.pyplot as plt
 from skimage import io, color
-from skimage.transform import resize, rescale
-from scipy import ndimage
+from skimage.transform import rescale
+import concurrent.futures
 
 
-def extract_sift_features(img, step_size=10, single_scale=True,
-                          region_scale=0.05, down_scale=6/23):
+def read_imgs(*fnames, debug=False):
+    """Reads images with concurrency"""
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        iterator = zip(fnames, executor.map(read_img, fnames))
+        imgs = []
+        for fname, img in iterator:
+            if debug:
+                print(f"Finished reading {fname}")
+            imgs.append(img)
+    return imgs
+
+
+def read_img(fname):
+    """Reads image"""
+    return io.imread(fname)
+
+
+def display_img(img):
+    """Displays imgage"""
+    io.imshow(img)
+    plt.show()
+
+
+def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
+    """
+    Extracts key points and their SIFT feature representations.
+
+    Finds key points in the images and save them as frames ``f``, then compute
+    the SIFT descriptor for these key points and save them as descriptors ``d``
+    . Finally, compute the number of key points in the image and save it as
+    ``num_features``.
+
+    Parameters
+    ----------
+        img: Image
+            An image to be analyzed
+        step_size: int
+            Steps for cyvlfeat dsift function
+        boundary_pct: float
+            Percentage of image to be seen as boundary
+        scale: float
+            Scale of rescaling (used to reduce computation)
+
+    Returns
+    -------
+        num_features: int
+            Number of feature points in the image
+        fd: Set(f, d)
+            - **f** (numpy.ndarray[float]) - Frames (key points) of the result
+            - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
+    """
     # make sure image is grayscale
     img = color.rgb2gray(img)
     # downscale image to extract less features
-    img = rescale(img, scale=down_scale, anti_aliasing=True, multichannel=False,
+    img = rescale(img, scale=scale, anti_aliasing=True, multichannel=False,
                   mode='reflect')
 
-    # img_h, img_w = img.shape[0, 1]
     img_h, img_w = img.shape[0], img.shape[1]
 
-    if single_scale: # TODO: What does this mean exactly? How is scale used?
-        # sift can be faster TODO: What's this comment about?
-        f, d = sift(img, peak_thresh=0.9, edge_thresh=30,
-                    compute_descriptor=True)
-    else:
-        f, d = sift(img, compute_descriptor=True)
+    f, d = dsift(img, step=step_size, fast=True)
 
-    # remove features and descriptors near boundary
-    if region_scale > 0:
-        left_mask = f[:, 1] > (img_w * region_scale) # remove left boarder
-        f, d = f[left_mask], d[left_mask]
-        right_mask = f[:, 1] < (img_w * (1-region_scale)) # remove right boarder
-        f, d = f[right_mask], d[right_mask]
-        bottom_mask = f[:, 0] > (img_h * region_scale) # remove bottown boarder
-        f, d = f[bottom_mask], d[bottom_mask]
-        top_mask = f[:, 0] < (img_h * (1-region_scale)) # remove top boarder
-        f, d = f[top_mask], d[top_mask]
-        
+    # remove features near boundary
+    if boundary_pct > 0:
+        in_boundary = ((f[:, 1] > (img_w * boundary_pct)) *
+                      (f[:, 1] < (img_w * (1 - boundary_pct))) *
+                      (f[:, 0] > (img_h * boundary_pct)) *
+                      (f[:, 0] < (img_h * (1-boundary_pct))))
+        f = f[in_boundary]
+        d = d[in_boundary]
 
+    assert len(f) == len(d)
     num_features = len(f)
 
-    return num_features, f, d
- 
+    return num_features, (f, d)
+
+
+def match_features(*fd, gpu=False):
+    """
+    Match features in multiple images
+
+    TODO: Detailed description
+
+    Parameters
+    ----------
+        *fd: Sequence[Set(f, d)]
+            - **f** (numpy.ndarray[float]) - Frames (key points) of the image
+            - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
+
+        gpu: Bool
+            Whether to use GPU for calculation
+
+    Returns
+    -------
+        num_features: int
+            Number of feature points in the image
+    """
+    if gpu:
+        matcher = None  # TODO: Write GPU matcher
+    else:
+        matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
+    base_d = fd[0][1]
+    for i in range(1, len(fd)):
+        matches = matcher.match(base_d, fd[i][1])
+    # FIXME: Not finished
+    return sorted(matches, key=lambda x: x.distance)[:5]

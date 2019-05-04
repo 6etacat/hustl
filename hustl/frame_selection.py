@@ -32,7 +32,7 @@ def extract_sift_features(name, frames, num_frames):
     f = np.zeros((num_frames, 100, 4))
     d = np.zeros((num_frames, 100, 128))
     for i in range(num_frames):
-        _, f_i, d_i = utils.extract_sift_features(frames[i], down_scale=hp.down_scale)
+        _, f_i, d_i = utils.extract_sift_features(frames[i], scale=hp.down_scale)
         f[i] = f_i[:100]
         d[i] = d_i[:100]
     np.save('../npy/'+name+"_f",f)

@@ -12,7 +12,7 @@ import visualize
 
 def main():
     path = '../../CVFinalProj_Data/'
-    names = ['DSC_3160.JPG', 'DSC_3161.JPG']
+    names = ['DSC_3330.JPG', 'DSC_3331.JPG']
     files = [path + name for name in names]
 
     #extract feature if they are not extracted already
