@@ -30,7 +30,7 @@ def display_img(img):
     plt.show()
 
 
-def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
+def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.05, scale=0.26, num_keypoints=200):
     """
     Extracts key points and their SIFT feature representations.
 
@@ -66,14 +66,19 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
 
     img_h, img_w = img.shape[0], img.shape[1]
 
-    f, d = dsift(img, step=step_size, fast=True)
+    f, d = sift(img, peak_thresh=peak_thresh, edge_thresh=edge_thresh, step=step_size, compute_descriptor=True)
+
+    num_keypoints = min(num_keypoints, f.shape[0])
+    keep_idx = np.random.permutation(f.shape[0])[:num_keypoints]
+    f = f[keep_idx]
+    d = d[keep_idx]
 
     # remove features near boundary
     if boundary_pct > 0:
         in_boundary = ((f[:, 1] > (img_w * boundary_pct)) *
-                      (f[:, 1] < (img_w * (1 - boundary_pct))) *
-                      (f[:, 0] > (img_h * boundary_pct)) *
-                      (f[:, 0] < (img_h * (1-boundary_pct))))
+                       (f[:, 1] < (img_w * (1 - boundary_pct))) *
+                       (f[:, 0] > (img_h * boundary_pct)) *
+                       (f[:, 0] < (img_h * (1-boundary_pct))))
         f = f[in_boundary]
         d = d[in_boundary]
 
@@ -83,7 +88,7 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
     return num_features, (f, d)
 
 
-def match_features(*fd, gpu=False):
+def match_features(*fd, num_matches=80, gpu=False):
     """
     Match features in multiple images
 
@@ -95,20 +100,55 @@ def match_features(*fd, gpu=False):
             - **f** (numpy.ndarray[float]) - Frames (key points) of the image
             - **d** (numpy.ndarray[uint8]) - Descriptor of corresponding frames
 
+        num_matches: int
+            Number of matches to be extracted
+
         gpu: Bool
             Whether to use GPU for calculation
 
     Returns
     -------
-        num_features: int
-            Number of feature points in the image
+        best_matches: Sequence(numpy.ndarray[float])
+            The frame (key points) of best matches among the given images in
+            descending order
     """
     if gpu:
         matcher = None  # TODO: Write GPU matcher
     else:
         matcher = cv2.BFMatcher(cv2.NORM_L2, crossCheck=True)
-    base_d = fd[0][1]
-    for i in range(1, len(fd)):
-        matches = matcher.match(base_d, fd[i][1])
-    # FIXME: Not finished
-    return sorted(matches, key=lambda x: x.distance)[:5]
+    d = fd[0][1]
+    matches = []
+    for i in range(0, len(fd) - 1):
+        match = matcher.match(fd[i][1], fd[i + 1][1])
+        matches.append(match)
+    best_matches = _find_best_matches(matches, num_matches)
+    return best_matches
+
+
+def _find_best_matches(matches, num_matches):
+    """Helper to arrange matches from best to worst and take top matches"""
+    base = []
+    for m in matches[0]:
+        if _recurs_exist_in_all(matches, m):
+            base.append(_recurs_fetch_matches(matches, m))
+    best_matches = _sort_matches(base)
+    return best_matches
+
+
+def _recurs_fetch_matches(matches, m):
+    if len(matches) == 0:
+        return []
+    
+
+
+def _sort_matches(base):
+    """Helper to sort chained matches"""
+    assert len(base) > 0
+    transform = []
+    for i in range(len(base[0])):
+        transform.append([l[i] for l in base])
+    transform = sorted(transform, lambda x: np.sum([m.distance for m in x]))
+    base = []
+    for j in range(len(transform[0])):
+        base.append([l[j] for j in transform])
+    return base
