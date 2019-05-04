@@ -9,7 +9,7 @@ dependencies:
   - scipy=1.2.1
   - scikit-image=0.15.0
   - scikit-video=1.1.11
-  - ffmpeg-4.0
+  - ffmpeg=4.1
   - pillow=6.0.0
   - pytorch-cpu=1.0.1
   - torchvision-cpu=0.2.2
