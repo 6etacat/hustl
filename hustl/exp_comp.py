@@ -16,15 +16,11 @@ import exp_comp_3
 
 def main():
     path = '../../CVFinalProj_Data/'
-<<<<<<< HEAD
-    names = ['DSC_3330.JPG', 'DSC_3331.JPG']
-=======
     # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
     # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
     names = ['DSC_3113.JPG', 'DSC_3114.JPG', 'DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
     # names = ['DSC_3115.JPG', 'DSC_3116.JPG']
 
->>>>>>> 1337d9a6f2fd3562bbd516e9ba4c2a5c505f7c4c
     files = [path + name for name in names]
 
     is_hard_refresh = True

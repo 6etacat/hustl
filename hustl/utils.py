@@ -30,7 +30,7 @@ def display_img(img):
     plt.show()
 
 
-def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
+def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.05, scale=0.26, num_keypoints=200):
     """
     Extracts key points and their SIFT feature representations.
 
@@ -66,7 +66,12 @@ def extract_sift_features(img, step_size=10, boundary_pct=0.05, scale=0.26):
 
     img_h, img_w = img.shape[0], img.shape[1]
 
-    f, d = dsift(img, step=step_size, fast=True)
+    f, d = sift(img, peak_thresh=peak_thresh, edge_thresh=edge_thresh, step=step_size, compute_descriptor=True)
+
+    num_keypoints = min(num_keypoints, f.shape[0])
+    keep_idx = np.random.permutation(f.shape[0])[:num_keypoints]
+    f = f[keep_idx]
+    d = d[keep_idx]
 
     # remove features near boundary
     if boundary_pct > 0:
