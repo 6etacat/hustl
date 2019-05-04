@@ -1,5 +1,4 @@
 # import numpy as np
-import cv2
 from cyvlfeat.sift import dsift
 import rawpy as rp
 import matplotlib.pyplot as plt
