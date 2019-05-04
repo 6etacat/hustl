@@ -1,9 +1,11 @@
 BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
 
-git checkout master
-git pull
-git checkout $BRANCH
-git merge origin master
+git pull origin master
+
+# git checkout master
+# git pull
+# git checkout $BRANCH
+# git merge origin master
 
 if [ -z "$1" ];
 then
