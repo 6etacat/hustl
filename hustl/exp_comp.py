@@ -7,24 +7,65 @@ from skimage import io, color
 from skimage.transform import resize, rescale
 from scipy import ndimage
 import os
+import subprocess
 import scipy
 import visualize
+import re
+import exp_comp_2
+import exp_comp_3
 
 def main():
     path = '../../CVFinalProj_Data/'
-    names = ['DSC_3160.JPG', 'DSC_3161.JPG']
+<<<<<<< HEAD
+    names = ['DSC_3330.JPG', 'DSC_3331.JPG']
+=======
+    # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
+    # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
+    names = ['DSC_3113.JPG', 'DSC_3114.JPG', 'DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
+    # names = ['DSC_3115.JPG', 'DSC_3116.JPG']
+
+>>>>>>> 1337d9a6f2fd3562bbd516e9ba4c2a5c505f7c4c
     files = [path + name for name in names]
 
+    is_hard_refresh = True
+
+    #### parameters ####
+    downscale_factor = 6/23
+
+    is_augmentation = True # for extract_color
+    aug_ratio = 5 # for extract_color
+    patch_size = 30 # for extract_color
+
+    scale = 10 # for estimation
+
+    num_feat_kept = 2000
+    #### end parameters ####
+
+
     #extract feature if they are not extracted already
-    if not os.path.isfile('../npy/sift_total.npy'):
-        extract_sift_feat(files, names)
+    if is_hard_refresh or (not os.path.isfile('../npy/sift_total.npy')):
+        extract_sift_feat(files, names, num_feat_kept, downscale_factor)
 
-    if not os.path.isfile('../npy/sift_match.npy'):
-        match_sift_feat(files, names)
+    if is_hard_refresh or (not os.path.isfile('../npy/sift_match.npy')):
+        match_sift_feat(files, names, downscale_factor)
 
-    find_clique(files, names, 1)
+    if is_hard_refresh or (not os.path.isfile('../npy/selected_featsort.npy')):
+        find_clique(files, names, 2)
 
-def extract_sift_feat(files, names):
+    if is_hard_refresh or (not os.path.isfile('../npy/patches.npy')):
+        exp_comp_2.extract_patches_batch(files, names, downscale_factor)
+
+    if is_hard_refresh or (not os.path.isfile('../npy/observation.npy')):
+        exp_comp_2.extract_color(files, names, is_augmentation, aug_ratio, patch_size)
+
+    if is_hard_refresh or (not os.path.isfile('../npy/estimation.npz')):
+        exp_comp_3.estimation(files, names, scale)
+
+    exp_comp_3.apply(files, names, downscale_factor)
+
+def extract_sift_feat(files, names, num_feat_kept, downscale_factor):
+
+    print("-----extracting SIFT features-----")
     ########## parameters ##########
     step_size = 10
     num_frames = len(files)
@@ -45,11 +86,11 @@ def extract_sift_feat(files, names):
     num_features = np.zeros((num_frames))
 
     for i in range(0, num_frames):
-        img = io.imread(files[i])[0] #it reads the image 3 times for some reason
+        img = io.imread(files[i]) #it reads the image 3 times for some reason
         img = color.rgb2gray(img)
 
         #downscale image
-        img = rescale(img, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
+        img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
         # trick for extracting less features
         # img = rescale(img, 2, anti_aliasing=True, multichannel=False, mode='reflect')
         img_h = img.shape[0]
@@ -57,11 +98,20 @@ def extract_sift_feat(files, names):
 
         if is_single_scale:
             #dsift can be faster
-            f,d = vlfeat.sift.sift(img, peak_thresh=0.9, edge_thresh=30, compute_descriptor=True)
+            f,d = vlfeat.sift.sift(img, peak_thresh=0.98, edge_thresh=5, compute_descriptor=True)
         else:
             f,d = vlfeat.sift.sift(img, compute_descriptor=True)
 
         #each row of f = [Y, X, Scale, Orientation], f[:, 0 ] is Y, f[:, 1] is X
+
+        print("Number of features extracted: " + str(f.shape[0]))
+
+        num_feat_kept = min(num_feat_kept, f.shape[0])
+        keep_idx = np.random.permutation(f.shape[0])[:num_feat_kept]
+        f = f[keep_idx]
+        d = d[keep_idx]
+
+        print("Number of features kept: " + str(f.shape[0]))
 
         #if is_remove_repetitive
 
@@ -78,7 +128,6 @@ def extract_sift_feat(files, names):
         # ax.plot(f[:, 1], f[:, 0], '+r', markersize=15)
         # ax.axis((0, img.shape[1], img.shape[0], 0))
         # plt.show()
-        # exit()
 
         #saving the extracted features
         np.save('../npy/'+names[i]+"_f", f)
@@ -93,13 +142,17 @@ def extract_sift_feat(files, names):
 
     to_save = np.array([num_features, num_features_cum, num_features_tot])
     np.save('../npy/sift_total', to_save)
+    print("Completed extracting SIFT features")
 
-def match_sift_feat(files, names):
+def match_sift_feat(files, names, downscale_factor):
+
+    print("-----matching SIFT features-----")
+
     num_frames = len(files)
     sift_total = np.load('../npy/sift_total.npy')
     num_features = sift_total[0]
 
-    is_vis_match = True #to see the matches or not
+    is_vis_match = False #to see the matches or not
 
     # M for matches, F for features
     M = [[[0] for i in range(num_frames)] for j in range(num_frames)]
@@ -190,10 +243,11 @@ def match_sift_feat(files, names):
 
             ############ visualize matches #############
             if is_vis_match:
-                img1 = color.rgb2gray(io.imread(files[i])[0])
-                img2 = color.rgb2gray(io.imread(files[j])[0])
-                img1 = rescale(img1, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
-                img2 = rescale(img2, 6/23, anti_aliasing=True, multichannel=False, mode='reflect')
+                print("visualizing matches")
+                img1 = color.rgb2gray(io.imread(files[i]))
+                img2 = color.rgb2gray(io.imread(files[j]))
+                img1 = rescale(img1, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
+                img2 = rescale(img2, downscale_factor, anti_aliasing=True, multichannel=False, mode='reflect')
                 matches[:, 0] = mi
                 matches[:, 1] = mj
                 matches = matches[np.random.permutation(matches.shape[0])][:50]
@@ -202,6 +256,7 @@ def match_sift_feat(files, names):
     M, F = np.array(M), np.array(F)
     to_save = np.array([M, F, num_matches])
     np.save('../npy/sift_match', to_save)
+    print("Completed matching SIFT features")
 
 #extract match indicies for visualization purposes
 def convert_matches(matches):
@@ -216,7 +271,10 @@ def extract_dist_score(matches):
         scores.append(match.distance)
     return np.array(scores)
 
-def find_clique(files, names, nclique):
+def find_clique(files, names, num_clique):
+
+    print("-----finding cliques-----")
+
     sift_total = np.load('../npy/sift_total.npy')
     sift_match = np.load('../npy/sift_match.npy')
     num_matches = sift_match[2]
@@ -228,9 +286,10 @@ def find_clique(files, names, nclique):
     num_features_tot = sift_total[2]
 
     num_frames = len(files)
+    # this part is ok - dmii
 
     ## similarity matrtix S
-    Si, Sj, Ss = np.zeros(num_matches), np.zeros(num_matches), np.zeros(num_matches)
+    Si, Sj, Ss = np.zeros(num_matches), np.zeros(num_matches), np.ones(num_matches)
     idx = 0
 
     for i in range(0, num_frames):
@@ -245,9 +304,70 @@ def find_clique(files, names, nclique):
              s = ms[2]
 
              Si[idx:idx + nn_matches] = mi
-             Sj[idx:idx + nn_matches] = mi
-             Ss[idx:idx + nn_matches] = mi
+             Sj[idx:idx + nn_matches] = mj
+             Ss[idx:idx + nn_matches] = s
              idx = idx + nn_matches
+
+    Si, Sj, Ss = Si.T, Sj.T, Ss.T
+
+    mat = [np.vstack([Si, Sj]), np.vstack([Sj,Si])]
+    mat = np.array(mat).T
+    with open('../features/match.grh','wb') as f:
+        for line in mat:
+            np.savetxt(f, line, fmt='%d', delimiter=',')
+
+    ########## running c program to find maximal clique
+    min_clique_num = min(num_frames, num_clique)
+    bat_path = r'C:\Users\majia\Desktop\CS1430\HUSTL\bin\mace.exe'
+    arg1, arg2 = 'MqVe', '-l'
+    input = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match.grh'
+    output = r'C:\Users\majia\Desktop\CS1430\HUSTL\features\match_maximal_clique.grh'
+    subprocess.call([bat_path, arg1, arg2, str(min_clique_num), input, output])
+
+    ####### read in the output
+    _output = "../features/match_maximal_clique.grh"
+    text = []
+    with open(_output, 'r') as f:
+        for line in f:
+            text.append(np.fromstring(line, dtype=float, sep=" "))
+
+    text = np.array(text)
+    nmatch = text.shape[0]
+    sizes = np.zeros(nmatch)
+    for i in range(0, nmatch):
+        sizes[i] = text[i].shape[0]
+
+    sorted_idx = np.argsort(-sizes, kind='mergesort') #descending order
+    sizes = sizes[sorted_idx]
+
+    nneighvec = sizes
+    featsort = np.copy(text)
+    for i in range(0, nmatch):
+        id = sorted_idx[i]
+        featsort[i] = text[id]
+
+    np.save('../npy/selected_featsort', featsort)
+    np.save('../npy/selected_nneighvec', nneighvec)
+    print("completed cliques")
+
+    #try to use regex, do not work
+    # text = re.findall('[^\n]*', text)
+    #
+    # nmatch = len(text)
+    # sizes = np.zeros((1, nmatch))
+    # temp_arr = np.zeros((1, nmatch))
+    #
+    # for i in range(0, nmatch):
+    #     temp = text[i]
+    #     print(temp)
+    #     temp2 = re.findall('[\S]*', temp)
+    #     print(temp2[0])
+    #     nelement = len(temp2)
+    #     arr = np.zeros((1, nelement))
+    #     for j in range(0, nelement):
+    #         arr[j] = float(temp2[j])
+    #         print("???")
+    #         print(arr[j])
 
 
 # def convert_to_KeyPoints(f):
@@ -267,4 +387,3 @@ if __name__ == '__main__':
 # ax.plot(f[:20, 1], f[:20, 0], '+r', markersize=15)
 # ax.axis((0, img.shape[1], img.shape[0], 0))
 # plt.show()
-# exit()
