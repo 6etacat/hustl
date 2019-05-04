@@ -1,3 +1,7 @@
 *.pyc
-/hustl/__pycache__
 *.ipynb
+.vscode
+
+__pycache__
+/hustl/__pycache__
+data
