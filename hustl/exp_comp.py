@@ -15,26 +15,28 @@ import exp_comp_2
 import exp_comp_3
 
 def main():
-    path = '../../CVFinalProj_Data/'
+    # path = '../../CVFinalProj_Data/'
+    path = '../../cv_img/DSC_3188_'
+    # path = '../res/'
     # names = ['DSC_3160.JPG', 'DSC_3161.JPG', 'DSC_3162.JPG']
     # names = ['DSC_3161.JPG', 'DSC_3162.JPG']
-    names = ['DSC_3113.JPG', 'DSC_3114.JPG', 'DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
+    names = ["%d" % number for number in np.arange(114, 120)]
     # names = ['DSC_3115.JPG', 'DSC_3116.JPG']
+    suffix = '_res.jpg'
+    files = [path + name + suffix for name in names]
 
-    files = [path + name for name in names]
-
-    is_hard_refresh = True
+    is_hard_refresh = False
 
     #### parameters ####
-    downscale_factor = 6/23
+    downscale_factor = 1
 
     is_augmentation = True # for extract_color
-    aug_ratio = 5 # for extract_color
+    aug_ratio = 4 # for extract_color
     patch_size = 30 # for extract_color
 
     scale = 10 # for estimation
 
-    num_feat_kept = 2000
+    num_feat_kept = 1000
     #### end parameters ####
 
 
