@@ -182,7 +182,7 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
     ## can add GPU option. not coded yet
 
     m, n = M.shape[0], M.shape[1]
-    maxIterOut = 2500
+    maxIterOut = 250
     max_mu = 1e20
     mu = 1e-3
     M_norm = norm(M, 'fro')
