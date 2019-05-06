@@ -3,17 +3,21 @@ from skimage import io, color, img_as_ubyte
 from skimage.transform import resize, rescale
 
 def main():
-    downscale_factor = 3/23
+    downscale_factor = 1
 
     ## original images
-    path = '../../CVFinalProj_Data/'
-    names = ['DSC_3113.JPG', 'DSC_3114.JPG', 'DSC_3115.JPG', 'DSC_3116.JPG', 'DSC_3117.JPG', 'DSC_3118.JPG']
-    files = [path + name for name in names]
+    path = '../../cv_img/DSC_3188_'
+    names = ["%d" % number for number in np.arange(102, 117, 3)]
+    suffix = '.jpg'
+    files = [path + name + suffix for name in names]
+
 
     ## res images
-    res_path = '../res/'
-    res_names = [name.split(".")[0] + "_res.jpg" for name in names]
-    res_files = [res_path + name for name in res_names]
+    res_path = '../../cv_img_color/'
+    res_names = ["%d" % number for number in np.arange(102, 117, 3)]
+    res_suffix = '_res.jpg'
+    res_files = [res_path + name + res_suffix for name in res_names]
+
 
     ori_arr = []
     res_arr = []
@@ -31,7 +35,7 @@ def main():
     res_output = np.column_stack(res_arr)
     print("saving")
     io.imsave('../res/' + names[0].split(".")[0] + "_ori_ALL.jpg", img_as_ubyte(ori_output))
-    io.imsave('../res/' + res_names[0].split(".")[0] + "_ALL.jpg", img_as_ubyte(res_output))
+    io.imsave('../res/' + res_names[0].split(".")[0] + "_res_ALL.jpg", img_as_ubyte(res_output))
     print("saved")
 
 if __name__ == '__main__':
