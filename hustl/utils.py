@@ -133,8 +133,9 @@ def _find_best_matches(matches, num_matches):
 
 def _recurs_fetch_matches(matches, m):
     if len(matches) == 0:
-        return []
-    
+        return [m]
+    else:
+        ...
 
 
 def _sort_matches(base):
