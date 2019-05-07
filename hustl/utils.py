@@ -1,5 +1,5 @@
-# import numpy as np
-from cyvlfeat.sift import dsift
+import numpy as np
+from cyvlfeat.sift import sift
 import rawpy as rp
 import matplotlib.pyplot as plt
 from skimage import io, color
@@ -29,16 +29,13 @@ def display_img(img):
     io.imshow(img)
     plt.show()
 
-
-def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.05, scale=0.26, num_keypoints=200):
+def extract_sift_features(img, peak_thresh=0.9, edge_thresh=30, boundary_pct=0.05, scale=0.26, num_keypoints=200):
     """
     Extracts key points and their SIFT feature representations.
-
     Finds key points in the images and save them as frames ``f``, then compute
     the SIFT descriptor for these key points and save them as descriptors ``d``
     . Finally, compute the number of key points in the image and save it as
     ``num_features``.
-
     Parameters
     ----------
         img: Image
@@ -49,7 +46,6 @@ def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.0
             Percentage of image to be seen as boundary
         scale: float
             Scale of rescaling (used to reduce computation)
-
     Returns
     -------
         num_features: int
@@ -66,12 +62,7 @@ def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.0
 
     img_h, img_w = img.shape[0], img.shape[1]
 
-    f, d = sift(img, peak_thresh=peak_thresh, edge_thresh=edge_thresh, step=step_size, compute_descriptor=True)
-
-    num_keypoints = min(num_keypoints, f.shape[0])
-    keep_idx = np.random.permutation(f.shape[0])[:num_keypoints]
-    f = f[keep_idx]
-    d = d[keep_idx]
+    f, d = sift(img, peak_thresh=peak_thresh, edge_thresh=edge_thresh, compute_descriptor=True)
 
     # remove features near boundary
     if boundary_pct > 0:
@@ -82,11 +73,15 @@ def extract_sift_features(img, peak_thresh=0.98, edge_thresh=5, boundary_pct=0.0
         f = f[in_boundary]
         d = d[in_boundary]
 
+    num_keypoints = min(num_keypoints, f.shape[0])
+    keep_idx = np.random.permutation(f.shape[0])[:num_keypoints]
+    f = f[keep_idx]
+    d = d[keep_idx]
+
     assert len(f) == len(d)
     num_features = len(f)
 
     return num_features, (f, d)
-
 
 def match_features(*fd, num_matches=80, gpu=False):
     """
