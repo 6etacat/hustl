@@ -13,11 +13,33 @@ import re
 from numpy.linalg import norm, inv
 
 def estimation(files, names, scale):
+    """
+    Decomposes observation matrix to prepare for final application
+
+    Parameters
+    ----------
+        files: list of strings
+            path to input images
+        names: list of strings
+            names of the input images
+        scale: float
+            A factor used for helper function l1_rpca_mask_alm_fast (low-rank matrix decomposition)
+
+    Saves
+    -------
+        estimation.npy:
+            O_low: Observation Matrix after low-rank matrix decomposition
+            albedo: albdeo matrix
+            const: constant (residual) matrix
+            gamma: gamma value matrix
+    """
+
     print("-----starting estimation-----")
 
     O = np.load('../npy/observation.npy')
     O, W, _, _ = initialization(O)
 
+    # parameters
     lbd = 1/np.sqrt(np.amin([O[0].shape[0], O[0].shape[1]]))
     rho = 1.05 ## do not change
 
@@ -27,16 +49,20 @@ def estimation(files, names, scale):
     albedo, const, gamma = [], [], []
     O_low = []
 
+    # for each color channel
     for ch in range(0,3):
+        # calls helper function to initialize albedo matrix
         a_init = init_albedo(np.ones(num_img), np.zeros(num_img), O[ch], W)
         g_init = np.ones(num_img)
         c_init = np.zeros(num_img)
 
         A = np.column_stack([a_init, np.ones((num_pts ,1))])
-        GC = np.vstack([g_init, np.multiply(c_init, g_init)]) # their GC is vertical
+        GC = np.vstack([g_init, np.multiply(c_init, g_init)])
 
+        # calls helper function to perform low-rank matrix decomposition
         O_l, A_est, GC_est, obj = l1_rpca_mask_alm_fast(O[ch], W, A, 2, lbd, A, GC.T, 1, rho, scale)
 
+        #storing results
         GC_est = GC_est.T
         O_low.append(O_l)
         albedo.append(np.exp(A_est[:, 0]))
@@ -48,13 +74,33 @@ def estimation(files, names, scale):
     const = np.array(const)
     gamma = np.array(gamma)
 
+    # saving results to file
     print("estimation completed, saving files")
     np.savez('../npy/estimation', O_low=O_low, albedo=albedo, const=const, gamma=gamma)
 
 def apply(files, names, downscale_factor):
+    """
+    Applies decomposed observation matrix to images to complete this stage of the
+    pipeline
+
+    Parameters
+    ----------
+        files: list of strings
+            path to input images
+        names: list of strings
+            names of the input images
+        downscale_factor: float
+            Factor of downscaling (used to reduce computation)
+
+    Saves
+    -------
+        final output images with color adjusted
+
+    """
 
     print("-----begin applying everything-----")
 
+    # loading previous results
     estimations = np.load('../npy/estimation.npz')
     O_low = estimations['O_low']
     albedo = estimations['albedo']
@@ -62,6 +108,8 @@ def apply(files, names, downscale_factor):
     gamma = estimations['gamma']
 
     num_frames = len(files)
+
+    # only transfer styles if num input img is 2
     if num_frames == 2:
         is_style_transfer = True
         transfer_id = 1
@@ -69,11 +117,13 @@ def apply(files, names, downscale_factor):
         is_style_transfer = False
         transfer_id = 1 # mayb should be 0
 
+    # for each image
     for i in range(0, num_frames):
         img = io.imread(files[i])
         img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=True, mode='reflect')
 
         img = img_as_float(img)
+        # for each channel in float representation, apply adjustments
         for ch in range(0,3):
             cc = const[ch, i]
             gg = gamma[ch, i]
@@ -92,24 +142,23 @@ def apply(files, names, downscale_factor):
                 cc2 = const[ch, transfer_id]
                 gg2 = gamma[ch, transfer_id]
                 ii = (ii * cc2) ** gg2
-                ii = np.clip(ii, -1, 1)
-                # ii[ii > 1] = 1
-                # ii[ii < 0] = 0
+                ii = np.clip(ii, -1, 1) #clipping
                 img[:, :, ch] = ii
 
             else:
+                # directly applying changes without style transfer
                 img[:, :, ch] = (ii ** (1/gg)) / cc
                 img = np.clip(img, -1, 1)
 
+        # convert images back to ubyte representation and write to files
         img = img_as_ubyte(img)
         path = '../res/' + names[i].split(".")[0] + "_res.jpg"
         io.imsave(path, img)
         print("img " + str(i) + " saved")
 
-        # plt.imshow(img)
-        # plt.show()
-
 def initialization(O):
+    """Helper to initialize various matricies needed for decomposition"""
+
     print("--initializing--")
 
     #used to initialize albedo, gamma, constants, and indicator mat
@@ -121,6 +170,7 @@ def initialization(O):
     W = np.zeros((num_pts, num_img))
     v_id = []
 
+    # for each image color channel
     for ch in range(0,3):
         gamma.append(np.ones(num_img))
         cons.append(np.zeros(num_img))
@@ -133,9 +183,6 @@ def initialization(O):
     v_id_intersect = np.intersect1d(np.intersect1d(v_id[0], v_id[1]), v_id[2])
     W[v_id_intersect] = 1
 
-    #### visualizing imgs
-    # implement later
-
     #### log scaling img
     for ch in range(0,3):
         sm_o = O[ch]
@@ -145,6 +192,8 @@ def initialization(O):
     return O, W, gamma, cons
 
 def init_albedo(pg, pc, O, W):
+    """Helper to initialize the albedo matrix"""
+
     print("--initializing albedo--")
 
     num_pts = O.shape[0]
@@ -176,13 +225,12 @@ def l1_rpca_mask_alm_fast(M, W, Ureg, r, lbd1, U, V, maxIterIN, rho, scale):
     """ This code is based on the MATLAB implementation by Ricardo Carbal
         of the paper Unifying Nuclear Norm and Bilinear Factorization Approaches
         for Low-rank Matrix Decomposition
+        https://github.com/syncle/photo_consistency/blob/master/fn_l1_rpca_mask_alm_fast.m
     """
     print("--starting l1_rpca_mask_alm_fast()--")
 
-    ## can add GPU option. not coded yet
-
     m, n = M.shape[0], M.shape[1]
-    maxIterOut = 2500
+    maxIterOut = 250
     max_mu = 1e20
     mu = 1e-3
     M_norm = norm(M, 'fro')
