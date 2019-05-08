@@ -46,28 +46,28 @@ the program.</p>
 
 <dl class="function">
 <dt id="hustl.utils.extract_sift_features">
-<code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>step_size=10</em>, <em>boundary_pct=0.05</em>, <em>scale=0.26</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extracts key points and their SIFT feature representations.</p>
-<p>Finds key points in the images and save them as frames <code class="docutils literal notranslate"><span class="pre">f</span></code>, then compute
+<code class="descclassname">hustl.utils.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>img</em>, <em>peak_thresh=0.9</em>, <em>edge_thresh=30</em>, <em>boundary_pct=0.05</em>, <em>scale=0.26</em>, <em>num_keypoints=200</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.extract_sift_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts key points and their SIFT feature representations.
+Finds key points in the images and save them as frames <code class="docutils literal notranslate"><span class="pre">f</span></code>, then compute
 the SIFT descriptor for these key points and save them as descriptors <code class="docutils literal notranslate"><span class="pre">d</span></code>
 . Finally, compute the number of key points in the image and save it as
-<code class="docutils literal notranslate"><span class="pre">num_features</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">num_features</span></code>.
+:param img: An image to be analyzed
+:type img: Image
+:param step_size: Steps for cyvlfeat dsift function
+:type step_size: int
+:param boundary_pct: Percentage of image to be seen as boundary
+:type boundary_pct: float
+:param scale: Scale of rescaling (used to reduce computation)
+:type scale: float</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>img</strong> (<em>Image</em>) – An image to be analyzed</p></li>
-<li><p><strong>step_size</strong> (<em>int</em>) – Steps for cyvlfeat dsift function</p></li>
-<li><p><strong>boundary_pct</strong> (<em>float</em>) – Percentage of image to be seen as boundary</p></li>
-<li><p><strong>scale</strong> (<em>float</em>) – Scale of rescaling (used to reduce computation)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
 <li><p><strong>num_features</strong> (<em>int</em>) – Number of feature points in the image</p></li>
 <li><p><strong>fd</strong> (<em>Set(f, d)</em>) –</p>
 <ul>
 <li><p><strong>f</strong> (numpy.ndarray[float]) - Frames (key points) of the result</p></li>
-<li><p><strong>d</strong> (numpy.ndarray[float]) - Descriptor of corresponding frames</p></li>
+<li><p><strong>d</strong> (numpy.ndarray[uint8]) - Descriptor of corresponding frames</p></li>
 </ul>
 </li>
 </ul>
@@ -78,7 +78,7 @@ the SIFT descriptor for these key points and save them as descriptors <code clas
 
 <dl class="function">
 <dt id="hustl.utils.match_features">
-<code class="descclassname">hustl.utils.</code><code class="descname">match_features</code><span class="sig-paren">(</span><em>*fd</em>, <em>gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.match_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">hustl.utils.</code><code class="descname">match_features</code><span class="sig-paren">(</span><em>*fd</em>, <em>num_matches=80</em>, <em>gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.utils.match_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Match features in multiple images</p>
 <p>TODO: Detailed description</p>
 <dl class="field-list simple">
@@ -86,17 +86,19 @@ the SIFT descriptor for these key points and save them as descriptors <code clas
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>*fd</strong> (<em>Sequence</em><em>[</em><em>Set</em><em>(</em><em>f</em><em>, </em><em>d</em><em>)</em><em>]</em>) – <ul>
 <li><p><strong>f</strong> (numpy.ndarray[float]) - Frames (key points) of the image</p></li>
-<li><p><strong>d</strong> (numpy.ndarray[float]) - Descriptor of corresponding frames</p></li>
+<li><p><strong>d</strong> (numpy.ndarray[uint8]) - Descriptor of corresponding frames</p></li>
 </ul>
 </p></li>
+<li><p><strong>num_matches</strong> (<em>int</em>) – Number of matches to be extracted</p></li>
 <li><p><strong>gpu</strong> (<em>Bool</em>) – Whether to use GPU for calculation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>num_features</strong> – Number of feature points in the image</p>
+<dd class="field-even"><p><strong>best_matches</strong> – The frame (key points) of best matches among the given images in
+descending order</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p>Sequence(numpy.ndarray[float])</p>
 </dd>
 </dl>
 </dd></dl>

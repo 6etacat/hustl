@@ -1,0 +1,297 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frame Selection &#8212; HUSTL 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="canonical" href="michaelmao.me/HUSTL/frame_selection.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="utils" href="utils.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="frame-selection">
+<h1>Frame Selection<a class="headerlink" href="#frame-selection" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="code docutils literal notranslate"><span class="pre">frame_selection</span></code> module includes functions needed to find optimal frames from input videos.</p>
+<div class="section" id="module-hustl.frame_selection">
+<span id="frame-selection-module"></span><h2>Frame Selection module<a class="headerlink" href="#module-hustl.frame_selection" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="hustl.frame_selection.compute_acceleration_cost">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">compute_acceleration_cost</code><span class="sig-paren">(</span><em>h</em>, <em>i</em>, <em>j</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.compute_acceleration_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes accelaration cost between two given frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h</strong> – the number of frames skipped over by i</p></li>
+<li><p><strong>i</strong> – any frame index between 0 and T</p></li>
+<li><p><strong>j</strong> – any frame index between i+1 and i+w (w=window_size)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>a float value of the acceleration cost between the given frames</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.compute_image_difference">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">compute_image_difference</code><span class="sig-paren">(</span><em>keypoint</em>, <em>descriptor</em>, <em>cp</em>, <em>num_frames</em>, <em>num_keypoints=50</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.compute_image_difference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes and the image difference between consecutive frames with different distance metrics.
+This is for illustration purpose only and not neededfor the pipeline itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keypoint</strong> – keypoint matrix of shape [num_frames, num_keypoints, 4], where the second index stores
+Y-coord, X-coord, scale_factor, and orientation_factor respectively</p></li>
+<li><p><strong>descriptor</strong> – descriptor matrix of shape [num_frames, num_keypoints, 128]</p></li>
+<li><p><strong>cp</strong> – coordinates of the center point of equally downscaled image frame in shape [Y,X]</p></li>
+<li><p><strong>num_frames</strong> – number of frames in the frame sequence</p></li>
+<li><p><strong>num_keypoints</strong> – number of keypoints taken into account, default value set in hyperparameters.py</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>difference vector computed using given keypoints and descriptors</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.compute_motion_cost">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">compute_motion_cost</code><span class="sig-paren">(</span><em>f</em>, <em>d</em>, <em>i</em>, <em>j</em>, <em>cp</em>, <em>p=50</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.compute_motion_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute motion cost for between two given frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – keypoint matrix of shape [num_frames, num_keypoints, 4], where the second index stores
+Y-coord, X-coord, scale_factor, and orientation_factor respectively</p></li>
+<li><p><strong>d</strong> – descriptor matrix of shape [num_frames, num_keypoints, 128]</p></li>
+<li><p><strong>i</strong> – any frame index between 0 and T</p></li>
+<li><p><strong>j</strong> – any frame index between i+1 and i+w (w=window_size)</p></li>
+<li><p><strong>cp</strong> – coordinates of the center point of equally downscaled image frame in shape [Y,X]</p></li>
+<li><p><strong>p</strong> – number of keypoints taken into account, default value set in hyperparameters.py</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a float value of the motion cost between the given frames</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>motion_cost</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.compute_velocity_cost">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">compute_velocity_cost</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>v=5</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.compute_velocity_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes velocity cost between two given frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – any frame index between 0 and T</p></li>
+<li><p><strong>j</strong> – any frame index between i+1 and i+w (w=window_size)</p></li>
+<li><p><strong>v</strong> – the target speedup rate we want to match in the output hyperlapse,
+default value set in hyperlapse.py</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a float value of the velocity cost between the given frames</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.extract_sift_features">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">extract_sift_features</code><span class="sig-paren">(</span><em>name</em>, <em>frames</em>, <em>num_frames</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.extract_sift_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract SIFT features from video frames and save them in numpy files with one file.
+f represents keypoints matrix and has shape [num_keypoints, 4], where the second index stores
+Y-coord, X-coord, scale_factor, and orientation_factor respectively.
+d represents descriptors matrix and has shape [num_keypoints, 128].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the video chosen</p></li>
+<li><p><strong>frames</strong> – video frames in numpy array, shape=[num_frames,height_frame,width_frame]</p></li>
+<li><p><strong>num_frames</strong> – number of frames in total in the original frame sequence</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns nothing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.generate_frame_images">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">generate_frame_images</code><span class="sig-paren">(</span><em>name</em>, <em>frames</em>, <em>path</em>, <em>option</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.generate_frame_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates and writes hyperlapse image sequence from the given frame path.
+If option is “naive”, it will output the naive hyperlapse in which frame path is taken
+uniformly at random. If option is “optimal”, it will output the optimal hyperlapse using
+the optimal path computed and stored beforehand.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the video chosen</p></li>
+<li><p><strong>frames</strong> – video frames in numpy array, shape=[num_frames,height_frame,width_frame]</p></li>
+<li><p><strong>path</strong> – the file path to which the output should be stored in</p></li>
+<li><p><strong>option</strong> – “naive” or “optimal”, indicating which frame path to use</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns nothing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.generate_hyperlapse_video">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">generate_hyperlapse_video</code><span class="sig-paren">(</span><em>name</em>, <em>frames</em>, <em>path</em>, <em>option</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.generate_hyperlapse_video" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates and writes hyperlapse videos from the given frame path.
+If option is “naive”, it will output the naive hyperlapse in which frame path is taken
+uniformly at random. If option is “optimal”, it will output the optimal hyperlapse using
+the optimal path computed and stored beforehand.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the video chosen</p></li>
+<li><p><strong>frames</strong> – video frames in numpy array, shape=[num_frames,height_frame,width_frame]</p></li>
+<li><p><strong>path</strong> – the file path to which the output should be stored in</p></li>
+<li><p><strong>option</strong> – “naive” or “optimal”, indicating which frame path to use</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns nothing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.generate_image_difference_data">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">generate_image_difference_data</code><span class="sig-paren">(</span><em>name</em>, <em>frames</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.generate_image_difference_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes and generates the difference between naive approach and optimal approach
+with different distance metrics. This is for illustration purpose only and not needed
+for the pipeline itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the video chosen</p></li>
+<li><p><strong>frames</strong> – video frames in numpy array, shape=[num_frames,height_frame,width_frame]</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns nothing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="hustl.frame_selection.select_optimal_frames">
+<code class="descclassname">hustl.frame_selection.</code><code class="descname">select_optimal_frames</code><span class="sig-paren">(</span><em>name</em>, <em>frames</em>, <em>T</em>, <em>w=30</em>, <em>g=10</em><span class="sig-paren">)</span><a class="headerlink" href="#hustl.frame_selection.select_optimal_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select optimal frame path from frame sequence and save the path in a numpy file.
+First, it initializes a static cost matrix. Then, it traverses through the static cost
+matrix and calculate a dynamic cost matrix. Lastly, it goes over the dynamic cost matrix
+and find a minimal cost path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the video chosen</p></li>
+<li><p><strong>frames</strong> – video frames in numpy array, shape=[num_frames,height_frame,width_frame]</p></li>
+<li><p><strong>T</strong> – number of frames in total in the original frame sequence</p></li>
+<li><p><strong>w</strong> – window size used in dynamic programming, i.e. the number of frames ahead that each
+frame compares to, default value set in hyperparamers.py</p></li>
+<li><p><strong>g</strong> – gap size used when initializing cost matrix, i.e. the number of frames in which the
+initial and terminal frame is selected in, default value set in hyperparamers.py</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns nothing</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">HUSTL</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frame Selection</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="utils.html" title="previous chapter">utils</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Michael Mao, Jiaju Ma, James Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/frame_selection.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

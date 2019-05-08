@@ -1,5 +1,5 @@
-import utils
-import hyperparameters as hp
+import hustl.utils
+import hustl.hyperparameters as hp
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
@@ -15,6 +15,7 @@ def main():
     format = '.mov'
     video = skvideo.io.vread(path+name+format)
     frames = np.asarray(video)
+    np.save('../npy/'+'frames.npy',frames)
     num_frames = frames.shape[0]
     if not os.path.isfile('../npy/'+name+'_f.npy'):
         extract_sift_features(name, frames, num_frames)
@@ -46,9 +47,9 @@ def extract_sift_features(name, frames, num_frames):
     d represents descriptors matrix and has shape [num_keypoints, 128].
 
     Args:
-        - name: name of the video chosen
-        - frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
-        - num_frames: number of frames in total in the original frame sequence
+        name: name of the video chosen
+        frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
+        num_frames: number of frames in total in the original frame sequence
     Returns nothing
     """
     f = np.zeros((num_frames, 100, 4))
@@ -68,12 +69,12 @@ def select_optimal_frames(name, frames, T,w=hp.window_size,g=hp.gap_size):
     and find a minimal cost path.
 
     Args:
-        - name: name of the video chosen
-        - frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
-        - T: number of frames in total in the original frame sequence
-        - w: window size used in dynamic programming, i.e. the number of frames ahead that each
+        name: name of the video chosen
+        frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
+        T: number of frames in total in the original frame sequence
+        w: window size used in dynamic programming, i.e. the number of frames ahead that each
             frame compares to, default value set in hyperparamers.py
-        - g: gap size used when initializing cost matrix, i.e. the number of frames in which the
+        g: gap size used when initializing cost matrix, i.e. the number of frames in which the
             initial and terminal frame is selected in, default value set in hyperparamers.py
     Returns nothing
     """
@@ -129,16 +130,16 @@ def compute_motion_cost(f,d,i,j,cp,p=hp.num_keyPoints):
     Compute motion cost for between two given frames.
 
     Args:
-        - f: keypoint matrix of shape [num_keypoints, 4], where the second index stores 
+        f: keypoint matrix of shape [num_frames, num_keypoints, 4], where the second index stores 
             Y-coord, X-coord, scale_factor, and orientation_factor respectively
-        - d: descriptor matrix of shape [num_keypoints, 128]
-        - i: any frame index between 0 and T
-        - j: any frame index between i+1 and i+w (w=window_size)
-        - cp: coordinates of the center point of equally downscaled image frame in shape [Y,X] 
-        - p: number of keypoints taken into account, default value set in hyperparameters.py
+        d: descriptor matrix of shape [num_frames, num_keypoints, 128]
+        i: any frame index between 0 and T
+        j: any frame index between i+1 and i+w (w=window_size)
+        cp: coordinates of the center point of equally downscaled image frame in shape [Y,X] 
+        p: number of keypoints taken into account, default value set in hyperparameters.py
 
     Returns:
-        - motion_cost: a float value of the motion cost between the given frames
+        motion_cost: a float value of the motion cost between the given frames
     """
     motion_cost = 0
     # matching features and calculating homography
@@ -162,13 +163,13 @@ def compute_velocity_cost(i, j, v=hp.speedup_rate):
     Computes velocity cost between two given frames.
 
     Args:
-        - i: any frame index between 0 and T
-        - j: any frame index between i+1 and i+w (w=window_size)
-        - v: the target speedup rate we want to match in the output hyperlapse,
+        i: any frame index between 0 and T
+        j: any frame index between i+1 and i+w (w=window_size)
+        v: the target speedup rate we want to match in the output hyperlapse,
             default value set in hyperlapse.py
 
     Returns:
-        - a float value of the velocity cost between the given frames
+        a float value of the velocity cost between the given frames
     """
     return min([norm(j - i - v), hp.velocity_threshold])
 
@@ -177,9 +178,9 @@ def compute_acceleration_cost(h, i, j):
     Computes accelaration cost between two given frames.
 
     Args:
-        - h: the number of frames skipped over by i
-        - i: any frame index between 0 and T
-        - j: any frame index between i+1 and i+w (w=window_size)
+        h: the number of frames skipped over by i
+        i: any frame index between 0 and T
+        j: any frame index between i+1 and i+w (w=window_size)
 
     Returns:
         - a float value of the acceleration cost between the given frames
@@ -194,10 +195,10 @@ def generate_hyperlapse_video(name, frames, path, option):
     the optimal path computed and stored beforehand.
 
     Args:
-        - name: name of the video chosen
-        - frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
-        - path: the file path to which the output should be stored in 
-        - option: "naive" or "optimal", indicating which frame path to use
+        name: name of the video chosen
+        frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
+        path: the file path to which the output should be stored in 
+        option: "naive" or "optimal", indicating which frame path to use
 
     Returns nothing
     """
@@ -220,10 +221,10 @@ def generate_frame_images(name, frames, path, option):
     the optimal path computed and stored beforehand.
 
     Args:
-        - name: name of the video chosen
-        - frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
-        - path: the file path to which the output should be stored in 
-        - option: "naive" or "optimal", indicating which frame path to use
+        name: name of the video chosen
+        frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
+        path: the file path to which the output should be stored in 
+        option: "naive" or "optimal", indicating which frame path to use
 
     Returns nothing
     """
@@ -243,8 +244,8 @@ def generate_image_difference_data(name, frames):
     for the pipeline itself.
 
     Args:
-        - name: name of the video chosen
-        - frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
+        name: name of the video chosen
+        frames: video frames in numpy array, shape=[num_frames,height_frame,width_frame]
 
     Returns nothing
     """
@@ -291,15 +292,15 @@ def compute_image_difference(keypoint, descriptor, cp, num_frames, num_keypoints
     This is for illustration purpose only and not neededfor the pipeline itself.
 
     Args:
-        - keypoint: keypoint matrix of shape [num_keypoints, 4], where the second index stores 
+        keypoint: keypoint matrix of shape [num_frames, num_keypoints, 4], where the second index stores 
             Y-coord, X-coord, scale_factor, and orientation_factor respectively
-        - descriptor: descriptor matrix of shape [num_keypoints, 128]
-        - cp: coordinates of the center point of equally downscaled image frame in shape [Y,X] 
-        - num_frames: number of frames in the frame sequence
-        - num_keypoints: number of keypoints taken into account, default value set in hyperparameters.py
+        descriptor: descriptor matrix of shape [num_frames, num_keypoints, 128]
+        cp: coordinates of the center point of equally downscaled image frame in shape [Y,X] 
+        num_frames: number of frames in the frame sequence
+        num_keypoints: number of keypoints taken into account, default value set in hyperparameters.py
 
     Returns:
-        - difference vector computed using given keypoints and descriptors
+        difference vector computed using given keypoints and descriptors
     """
     
     difference = np.zeros((num_frames))
