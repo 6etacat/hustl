@@ -19,3 +19,4 @@ Contents
    :maxdepth: 1
 
    utils
+   frame_selection

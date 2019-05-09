@@ -24,7 +24,7 @@ def main():
     print("begin stacking")
     for i in range(len(files)):
         img = io.imread(files[i]) #it reads the image 3 times for some reason
-        img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=True, mode='reflect')
+        # img = rescale(img, downscale_factor, anti_aliasing=True, multichannel=True, mode='reflect')
         ori_arr.append(img)
 
         res = io.imread(res_files[i]) #it reads the image 3 times for some reason
@@ -36,6 +36,7 @@ def main():
     print("saving")
     io.imsave('../res/' + names[0].split(".")[0] + "_ori_ALL.jpg", img_as_ubyte(ori_output))
     io.imsave('../res/' + res_names[0].split(".")[0] + "_res_ALL.jpg", img_as_ubyte(res_output))
+
     print("saved")
 
 if __name__ == '__main__':
