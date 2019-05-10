@@ -1,5 +1,18 @@
 # HUSTL
 
+## Pipeline Stages and Scripts
+
+#### Stage 1 Optimal Frames Selection
+`stabilize.py`
+
+#### Stage 2 Color Consistency Across Frames
+`exp_comp.py` <br>
+`exp_comp_2.py` <br>
+`exp_comp_3.py`
+
+#### Stage 3 Video Stabilization
+`frame_selection.py`
+
 ## Environment
 
 #### Installation
@@ -36,7 +49,7 @@ Without custom title and comment:
 
 ## Docs and Docs Generation
 
-Please write [numpy style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) in your code. Refer to `utils.extract_sift_features` for example. 
+Please write [numpy style docstrings](https://numpydoc.readthedocs.io/en/latest/format.html) in your code. Refer to `utils.extract_sift_features` for example.
 
 #### Linux or Mac OS
 
