@@ -3,7 +3,7 @@
 ## Pipeline Stages and Scripts
 
 #### Stage 1 Optimal Frames Selection
-`stabilize.py`
+`frame_selection.py`
 
 #### Stage 2 Color Consistency Across Frames
 `exp_comp.py` <br>
@@ -11,7 +11,7 @@
 `exp_comp_3.py`
 
 #### Stage 3 Video Stabilization
-`frame_selection.py`
+`stabilize.py`
 
 ## Environment
 
